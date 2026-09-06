@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HAPP Config Converter</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
     <style>
         * {
             margin: 0;
@@ -279,6 +280,19 @@
         .debug-close:hover {
             color: #f85149;
         }
+        .example-btn {
+            background: transparent;
+            border: 1px dashed #30363d;
+            color: #8b949e;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .example-btn:hover {
+            border-color: #58a6ff;
+            color: #58a6ff;
+        }
     </style>
 </head>
 <body>
@@ -301,10 +315,11 @@
                 </div>
                 <textarea id="inputArea" placeholder="Вставьте VLESS, Hysteria2, Trojan, VMESS ссылки..."></textarea>
                 <div class="toolbar">
-                    <button class="btn primary" onclick="doPaste()">📋 Вставить</button>
-                    <button class="btn success" onclick="doConvert()">🔄 Конвертировать</button>
-                    <button class="btn danger" onclick="doClearInput()">🗑️ Очистить</button>
-                    <button class="btn orange" onclick="toggleDebug()">🐛 Отладка</button>
+                    <button class="btn primary" onclick="window.doPaste()">📋 Вставить</button>
+                    <button class="btn success" onclick="window.doConvert()">🔄 Конвертировать</button>
+                    <button class="btn danger" onclick="window.doClearInput()">🗑️ Очистить</button>
+                    <button class="btn orange" onclick="window.toggleDebug()">🐛 Отладка</button>
+                    <button class="example-btn" onclick="window.loadExample()">📄 Пример</button>
                 </div>
                 <div class="settings">
                     <label><input type="checkbox" id="autoConvert" checked /> Автоконвертация</label>
@@ -321,10 +336,10 @@
                 </div>
                 <textarea id="outputArea" readonly placeholder="Здесь будет JSON..."></textarea>
                 <div class="toolbar">
-                    <button class="btn success" onclick="doCopy()">📋 Копировать</button>
-                    <button class="btn orange" onclick="doSave()">💾 Сохранить</button>
-                    <button class="btn purple" onclick="doStats()">📊 Статистика</button>
-                    <button class="btn danger" onclick="doClearOutput()">🗑️ Очистить</button>
+                    <button class="btn success" onclick="window.doCopy()">📋 Копировать</button>
+                    <button class="btn orange" onclick="window.doSave()">💾 Сохранить</button>
+                    <button class="btn purple" onclick="window.doStats()">📊 Статистика</button>
+                    <button class="btn danger" onclick="window.doClearOutput()">🗑️ Очистить</button>
                 </div>
                 <div class="status-bar">
                     <span>📏 <span id="outputSize">0</span> символов</span>
@@ -336,14 +351,14 @@
 
         <!-- ОТЛАДКА -->
         <div class="debug-console" id="debugConsole">
-            <div class="debug-header"><span>🐛 Отладка</span><span class="debug-close" onclick="toggleDebug()">✕</span></div>
+            <div class="debug-header"><span>🐛 Отладка</span><span class="debug-close" onclick="window.toggleDebug()">✕</span></div>
             <div id="debugLog"></div>
         </div>
 
         <!-- СТАТИСТИКА -->
         <div id="statsModal" class="modal hidden">
             <div class="modal-content">
-                <span class="close" onclick="closeStats()">&times;</span>
+                <span class="close" onclick="window.closeStats()">&times;</span>
                 <pre id="statsText"></pre>
             </div>
         </div>
@@ -354,14 +369,15 @@
 
     <script>
         // ======================================================================
-        //  ПРОСТАЯ РАБОЧАЯ ЛОГИКА
+        //  ВСЕ ФУНКЦИИ В ГЛОБАЛЬНОЙ ОБЛАСТИ
         // ======================================================================
 
         // ---- ОТЛАДКА ----
         let debugVisible = false;
         const debugLog = document.getElementById('debugLog');
 
-        function log(msg, type = 'info') {
+        function log(msg, type) {
+            type = type || 'info';
             const cls = { error: 'err', success: 'ok', info: 'info', warning: 'warn' } [type] || 'info';
             const time = new Date().toLocaleTimeString();
             debugLog.innerHTML += `<div><span class="${cls}">[${time}] ${msg}</span></div>`;
@@ -369,12 +385,12 @@
             console.log(`[${type}] ${msg}`);
         }
 
-        function toggleDebug() {
+        window.toggleDebug = function() {
             const el = document.getElementById('debugConsole');
             debugVisible = !debugVisible;
             el.style.display = debugVisible ? 'block' : 'none';
-            if (debugVisible) log('🐛 Отладка включена');
-        }
+            if (debugVisible) log('🐛 Отладка включена', 'info');
+        };
 
         // ---- DOM ----
         const inputArea = document.getElementById('inputArea');
@@ -389,6 +405,19 @@
 
         let convertedData = null;
 
+        // ---- ПРИМЕР ----
+        window.loadExample = function() {
+            const example = `🇸🇴 Авто выбор локации 🚀
+        vless://...
+        vless://...
+        
+        🇸🇪 Швеция
+        vless://...`;
+            inputArea.value = example;
+            updateLinkCount();
+            if (autoConvert.checked) window.doConvert();
+        };
+
         // ---- СЧЕТЧИК ----
         function updateLinkCount() {
             const text = inputArea.value;
@@ -398,29 +427,29 @@
         }
 
         // ---- КНОПКИ ----
-        function doPaste() {
+        window.doPaste = function() {
             navigator.clipboard.readText().then(text => {
                 inputArea.value = text;
                 updateLinkCount();
-                if (autoConvert.checked) doConvert();
+                if (autoConvert.checked) window.doConvert();
             }).catch(() => alert('Не удалось вставить из буфера'));
-        }
+        };
 
-        function doClearInput() {
+        window.doClearInput = function() {
             inputArea.value = '';
             updateLinkCount();
             inputStatus.innerHTML = '💡 Ввод очищен';
-        }
+        };
 
-        function doClearOutput() {
+        window.doClearOutput = function() {
             outputArea.value = '';
             statsLabel.textContent = 'Ожидание...';
             outputSize.textContent = '0';
             serverCount.textContent = '🌐 0 серверов';
             convertedData = null;
-        }
+        };
 
-        function doCopy() {
+        window.doCopy = function() {
             const text = outputArea.value;
             if (!text) return alert('Нет данных');
             navigator.clipboard.writeText(text).then(() => {
@@ -429,9 +458,9 @@
                 btn.textContent = '✅ Готово!';
                 setTimeout(() => btn.textContent = orig, 1200);
             });
-        }
+        };
 
-        function doSave() {
+        window.doSave = function() {
             const text = outputArea.value;
             if (!text) return alert('Нет данных');
             const blob = new Blob([text], { type: 'application/json' });
@@ -441,9 +470,9 @@
             a.download = `happ_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
-        }
+        };
 
-        function doStats() {
+        window.doStats = function() {
             if (!convertedData) return alert('Сначала сконвертируйте данные');
             const modal = document.getElementById('statsModal');
             const text = document.getElementById('statsText');
@@ -462,25 +491,25 @@
             text.textContent =
                 `📊 СТАТИСТИКА\n\n📁 Групп: ${groups}\n🌐 Серверов: ${servers}\n\n📝 Протоколы:\n${protoStr}`;
             modal.classList.remove('hidden');
-        }
+        };
 
-        function closeStats() {
+        window.closeStats = function() {
             document.getElementById('statsModal').classList.add('hidden');
-        }
+        };
 
         // ---- АВТОКОНВЕРТАЦИЯ ----
         inputArea.addEventListener('input', function() {
             updateLinkCount();
-            if (autoConvert.checked) doConvert();
+            if (autoConvert.checked) window.doConvert();
         });
 
         inputArea.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'Enter') { e.preventDefault();
-                doConvert(); }
+                window.doConvert(); }
         });
 
-        // ---- ОСНОВНАЯ КОНВЕРТАЦИЯ (ПРОСТАЯ) ----
-        function doConvert() {
+        // ---- ОСНОВНАЯ КОНВЕРТАЦИЯ ----
+        window.doConvert = function() {
             const text = inputArea.value.trim();
             log(`Конвертация: ${text.length} символов`, 'info');
 
@@ -494,11 +523,9 @@
                 return;
             }
 
-            // Разбиваем на строки
             const lines = text.split('\n');
             log(`Всего строк: ${lines.length}`, 'info');
 
-            // Ищем группы и ссылки
             const groups = [];
             let currentGroup = null;
             let currentServers = [];
@@ -507,7 +534,8 @@
                 const line = lines[i].trim();
                 if (!line) continue;
 
-                const isGroup = /^[🇦-🇿]+\s*/.test(line) && !line.startsWith('vless://') && !line.startsWith('hysteria2://') &&
+                // Проверяем группу (флаг + текст)
+                const isGroup = /^[🇦-🇿]/.test(line) && !line.startsWith('vless://') && !line.startsWith('hysteria2://') &&
                     !line.startsWith('trojan://') && !line.startsWith('vmess://') && !line.startsWith('ss://') && !line
                     .startsWith('{');
 
@@ -607,7 +635,7 @@
                         outbounds.push(ob);
                         log(`Добавлен сервер: ${tag}`, 'ok');
                     } else {
-                        log(`Не удалось распарсить: ${entry.data?.substring(0,40)}...`, 'warning');
+                        log(`Не удалось распарсить: ${entry.data?.substring(0, 40)}...`, 'warning');
                     }
                 }
 
@@ -646,7 +674,6 @@
                 });
             }
 
-            // ВЫВОД
             const json = prettyJson.checked ? JSON.stringify(result, null, 2) : JSON.stringify(result);
             outputArea.value = json;
             convertedData = result;
@@ -658,7 +685,7 @@
             serverCount.textContent = `🌐 ${total} серверов`;
             inputStatus.innerHTML = `<span style="color:#3fb950;">✅ Успешно! ${result.length} групп, ${total} серверов</span>`;
             log(`✅ ГОТОВО! ${result.length} групп, ${total} серверов`, 'success');
-        }
+        };
 
         // ======================================================================
         //  ПАРСЕРЫ
@@ -916,9 +943,10 @@
         // ---- ПЕРВЫЙ ЗАПУСК ----
         document.addEventListener('DOMContentLoaded', function() {
             log('🚀 Приложение загружено', 'info');
+            // Если есть текст - конвертируем
             if (inputArea.value.trim()) {
                 log('Есть текст в поле ввода, конвертируем...', 'info');
-                doConvert();
+                window.doConvert();
             }
         });
     </script>
