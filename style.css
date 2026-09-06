@@ -1,0 +1,279 @@
+/* Общие */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0d1117;
+    color: #f0f6fc;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    width: 100%;
+    background: #161b22;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+    border: 1px solid #30363d;
+}
+
+/* Шапка */
+header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #30363d;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #58a6ff;
+}
+
+header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #58a6ff, #3fb950);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    color: #8b949e;
+    font-size: 16px;
+    margin-left: auto;
+}
+.subtitle strong {
+    color: #58a6ff;
+    -webkit-text-fill-color: #58a6ff;
+}
+
+/* Сетка */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 820px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Карточки */
+.card {
+    background: #0d1117;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #30363d;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #f0f6fc;
+}
+
+.badge {
+    background: #21262d;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #8b949e;
+}
+
+/* Textarea */
+textarea {
+    flex: 1;
+    min-height: 300px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    color: #f0f6fc;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 14px;
+    padding: 14px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+}
+
+textarea:focus {
+    border-color: #58a6ff;
+}
+
+textarea[readonly] {
+    background: #161b22;
+}
+
+/* Toolbar */
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 10px 22px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #21262d;
+    color: #f0f6fc;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.2);
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+.btn.primary {
+    background: #1f6feb;
+}
+.btn.primary:hover {
+    background: #388bfd;
+}
+
+.btn.success {
+    background: #238636;
+}
+.btn.success:hover {
+    background: #2ea043;
+}
+
+.btn.danger {
+    background: #da3633;
+}
+.btn.danger:hover {
+    background: #f85149;
+}
+
+.btn.purple {
+    background: #8957e5;
+}
+.btn.purple:hover {
+    background: #a371f7;
+}
+
+/* Настройки */
+.settings {
+    display: flex;
+    gap: 24px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.settings label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #8b949e;
+    cursor: pointer;
+}
+
+.settings input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #58a6ff;
+    cursor: pointer;
+}
+
+/* Модалка */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #161b22;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    border: 1px solid #30363d;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 12px;
+    right: 20px;
+    font-size: 28px;
+    color: #8b949e;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.close:hover {
+    color: #f0f6fc;
+}
+
+#statsText {
+    color: #f0f6fc;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.8;
+    margin-top: 8px;
+}
+
+/* Футер */
+footer {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid #30363d;
+    text-align: center;
+    color: #8b949e;
+    font-size: 14px;
+}
+
+footer strong {
+    color: #58a6ff;
+    -webkit-text-fill-color: #58a6ff;
+}
