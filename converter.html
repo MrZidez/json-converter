@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>VPN From Kirill — HAPP Config Converter</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/png" href="logo.jpg" />
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Шапка -->
+        <header>
+            <img src="logo.jpg" alt="VPN From Kirill" class="logo" />
+            <h1>🚀 HAPP Config Converter</h1>
+            <p class="subtitle">by <strong>VPN From Kirill</strong></p>
+        </header>
+
+        <!-- Основная сетка -->
+        <div class="grid">
+
+            <!-- Ввод -->
+            <section class="card">
+                <div class="card-header">
+                    <span>📝 Ввод</span>
+                    <span class="badge" id="linkCount">0 ссылок</span>
+                </div>
+                <textarea id="inputArea" placeholder="Вставьте VLESS, Hysteria2, Trojan, VMESS, Shadowsocks ссылки или JSON…"></textarea>
+                <div class="toolbar">
+                    <button class="btn primary" onclick="pasteFromClipboard()">📋 Вставить</button>
+                    <button class="btn success" onclick="convert()">🔄 Конвертировать</button>
+                    <button class="btn danger" onclick="clearInput()">🗑️ Очистить</button>
+                </div>
+                <div class="settings">
+                    <label>
+                        <input type="checkbox" id="autoConvert" checked />
+                        🔄 Автоконвертация
+                    </label>
+                    <label>
+                        <input type="checkbox" id="prettyJson" checked />
+                        📐 Форматировать JSON
+                    </label>
+                </div>
+            </section>
+
+            <!-- Вывод -->
+            <section class="card">
+                <div class="card-header">
+                    <span>📤 Вывод (JSON)</span>
+                    <span class="badge" id="statsLabel">Ожидание…</span>
+                </div>
+                <textarea id="outputArea" readonly placeholder="Здесь появится готовый JSON…"></textarea>
+                <div class="toolbar">
+                    <button class="btn success" onclick="copyJson()">📋 Копировать JSON</button>
+                    <button class="btn purple" onclick="showStats()">📊 Статистика</button>
+                    <button class="btn danger" onclick="clearOutput()">🗑️ Очистить</button>
+                </div>
+                <div id="statsModal" class="modal hidden">
+                    <div class="modal-content">
+                        <span class="close" onclick="closeStats()">&times;</span>
+                        <pre id="statsText"></pre>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Футер -->
+        <footer>
+            <p>© 2026 <strong>VPN From Kirill</strong> — для <strong>HAPP</strong> и не только</p>
+        </footer>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
