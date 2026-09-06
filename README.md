@@ -4,7 +4,7 @@
 
 ## 🌐 Сайт
 
-**[Free VPN From Kirill](https://github.com/MrZidez/free-sub)**
+**[VPN From Kirill](https://github.com/MrZidez/free-sub)**
 
 ## 🛠️ Установка
 
@@ -13,3 +13,10 @@ git clone https://github.com/MrZidez/vpn-converter.git
 cd vpn-converter
 pip install -r requirements.txt
 python app.py
+```
+
+📦 Сборка .exe
+```bash
+pip install pyinstaller
+pyinstaller --onefile --windowed --name="HAPP_Converter" --add-data="index.html;." --add-data="style.css;." --add-data="script.js;." --add-data="logo.jpg;." app.py
+```
