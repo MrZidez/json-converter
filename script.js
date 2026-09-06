@@ -560,4 +560,180 @@ function convertGroups(groups) {
     log(`Начинаем конвертацию ${groups.length} групп...`, 'info');
     const result = [];
     for (const g of groups) {
-        log
+        log(`Обработка группы: ${g.name} (${g.servers.length} серверов)`, 'info');
+        const outbounds = [];
+        let counter = 1;
+        const usedTags = new Set();
+
+        for (const entry of g.servers || []) {
+            const ob = parseLink(entry);
+            if (ob) {
+                let tag = ob.tag || 'proxy';
+                if (tag === 'proxy' || usedTags.has(tag)) {
+                    tag = `proxy-${counter}`;
+                    counter++;
+                }
+                ob.tag = tag;
+                usedTags.add(tag);
+                outbounds.push(ob);
+                log(`Добавлен сервер: ${tag} (${ob.protocol})`, 'success');
+            } else {
+                log(`Не удалось распарсить: ${entry.data?.substring(0, 50)}...`, 'warning');
+            }
+        }
+
+        if (!outbounds.length) {
+            log(`Группа ${g.name} пропущена (нет серверов)`, 'warning');
+            continue;
+        }
+
+        outbounds.push({ tag: 'direct', protocol: 'freedom' });
+        outbounds.push({ tag: 'block', protocol: 'blackhole' });
+
+        result.push({
+            remarks: g.name,
+            dns: {
+                servers: ['1.1.1.1', '1.0.0.1'],
+                queryStrategy: 'UseIP'
+            },
+            routing: {
+                rules: [{ type: 'field', protocol: ['bittorrent'], outboundTag: 'direct' }],
+                domainMatcher: 'hybrid',
+                domainStrategy: 'IPIfNonMatch'
+            },
+            inbounds: [{
+                tag: 'socks',
+                port: 10808,
+                listen: '127.0.0.1',
+                protocol: 'socks',
+                settings: { udp: true, auth: 'noauth' },
+                sniffing: { enabled: true, routeOnly: false, destOverride: ['http', 'tls', 'quic'] }
+            }, {
+                tag: 'http',
+                port: 10809,
+                listen: '127.0.0.1',
+                protocol: 'http',
+                settings: { allowTransparent: false },
+                sniffing: { enabled: true, routeOnly: false, destOverride: ['http', 'tls', 'quic'] }
+            }],
+            outbounds: outbounds
+        });
+    }
+    log(`Конвертация завершена. Получено ${result.length} групп`, 'success');
+    return result;
+}
+
+function convert() {
+    const text = inputArea.value.trim();
+    log(`Начинаем конвертацию. Длина текста: ${text.length} символов`, 'info');
+
+    if (!text) {
+        log('Текст пуст', 'warning');
+        outputArea.value = '';
+        statsLabel.textContent = 'Нет данных';
+        outputSize.textContent = '0';
+        serverCount.textContent = '🌐 0 серверов';
+        convertedData = null;
+        inputStatus.innerHTML = '<span>⚠️ Нет данных для конвертации</span>';
+        return;
+    }
+
+    const lines = text.split('\n');
+    log(`Разбито на ${lines.length} строк`, 'info');
+
+    const groups = [];
+    let currentGroup = null;
+    let currentServers = [];
+
+    const groupRegex = /^[🇦-🇿]+\s*.*/;
+    let lineNumber = 0;
+
+    for (const raw of lines) {
+        lineNumber++;
+        const line = raw.trim();
+        if (!line) continue;
+
+        const isLink = /^(vless:\/\/|hysteria2:\/\/|trojan:\/\/|vmess:\/\/|ss:\/\/)/.test(line);
+        const isJson = line.startsWith('{');
+
+        if (groupRegex.test(line) && !isLink && !isJson) {
+            log(`Строка ${lineNumber}: Найдена группа "${line}"`, 'info');
+            if (currentGroup && currentServers.length) {
+                groups.push({ name: currentGroup, servers: currentServers });
+                log(`Добавлена группа "${currentGroup}" с ${currentServers.length} серверами`, 'success');
+            }
+            currentGroup = line;
+            currentServers = [];
+        } else if (isLink) {
+            const type = line.split(':')[0];
+            log(`Строка ${lineNumber}: Найдена ссылка ${type}`, 'info');
+            currentServers.push({ type: type, data: line });
+        } else if (isJson) {
+            log(`Строка ${lineNumber}: Найден JSON`, 'info');
+            try {
+                const parsed = JSON.parse(line);
+                currentServers.push({ type: 'json', data: parsed });
+            } catch (e) {
+                log(`Ошибка парсинга JSON: ${e.message}`, 'error');
+            }
+        } else if (!currentGroup && isLink) {
+            log(`Строка ${lineNumber}: Создана группа "Без названия"`, 'warning');
+            currentGroup = 'Без названия';
+            const type = line.split(':')[0];
+            currentServers.push({ type: type, data: line });
+        }
+    }
+
+    if (currentGroup && currentServers.length) {
+        groups.push({ name: currentGroup, servers: currentServers });
+        log(`Добавлена последняя группа "${currentGroup}" с ${currentServers.length} серверами`, 'success');
+    }
+
+    log(`Всего найдено групп: ${groups.length}`, 'info');
+
+    if (!groups.length) {
+        log('Группы не найдены!', 'error');
+        outputArea.value = '';
+        statsLabel.textContent = 'Нет групп';
+        outputSize.textContent = '0';
+        serverCount.textContent = '🌐 0 серверов';
+        convertedData = null;
+        inputStatus.innerHTML = '<span class="error">❌ Группы не найдены! Проверьте формат ввода</span>';
+        return;
+    }
+
+    try {
+        const result = convertGroups(groups);
+        const json = prettyJson.checked ?
+            JSON.stringify(result, null, 2) :
+            JSON.stringify(result);
+
+        outputArea.value = json;
+        convertedData = result;
+        outputSize.textContent = json.length;
+
+        const total = result.reduce((acc, g) => {
+            return acc + (g.outbounds?.filter(o => !['direct', 'block'].includes(o.tag)).length || 0);
+        }, 0);
+        statsLabel.textContent = `📊 ${result.length} групп, ${total} серверов`;
+        serverCount.textContent = `🌐 ${total} серверов`;
+        inputStatus.innerHTML = `<span class="success">✅ Успешно сконвертировано! ${result.length} групп, ${total} серверов</span>`;
+        log(`✅ ГОТОВО! ${result.length} групп, ${total} серверов`, 'success');
+    } catch (e) {
+        log(`❌ ОШИБКА КОНВЕРТАЦИИ: ${e.message}`, 'error');
+        log(`Stack: ${e.stack}`, 'error');
+        inputStatus.innerHTML = `<span class="error">❌ Ошибка: ${e.message}</span>`;
+        alert(`Ошибка конвертации:\n${e.message}`);
+    }
+}
+
+// ===== ПЕРВАЯ КОНВЕРТАЦИЯ ПРИ ЗАГРУЗКЕ =====
+document.addEventListener('DOMContentLoaded', function() {
+    log('Приложение загружено', 'info');
+    if (inputArea.value.trim()) {
+        log('Обнаружен текст в поле ввода, запускаем конвертацию...', 'info');
+        convert();
+    } else {
+        log('Поле ввода пустое, ждем данных', 'info');
+    }
+});
