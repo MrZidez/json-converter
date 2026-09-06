@@ -4,8 +4,279 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>VPN From Kirill — HAPP Config Converter</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="icon" type="image/png" href="logo.jpg" />
+    <style>
+        /* ===== Стили внутри index.html ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0d1117;
+            color: #f0f6fc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: #161b22;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+            border: 1px solid #30363d;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #58a6ff;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #58a6ff, #3fb950);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #8b949e;
+            font-size: 16px;
+            margin-left: auto;
+        }
+        .subtitle strong {
+            color: #58a6ff;
+            -webkit-text-fill-color: #58a6ff;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 820px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #0d1117;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #30363d;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #f0f6fc;
+        }
+
+        .badge {
+            background: #21262d;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 400;
+            color: #8b949e;
+        }
+
+        textarea {
+            flex: 1;
+            min-height: 300px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            color: #f0f6fc;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 14px;
+            padding: 14px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            border-color: #58a6ff;
+        }
+
+        textarea[readonly] {
+            background: #161b22;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #21262d;
+            color: #f0f6fc;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.2);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn.primary {
+            background: #1f6feb;
+        }
+        .btn.primary:hover {
+            background: #388bfd;
+        }
+
+        .btn.success {
+            background: #238636;
+        }
+        .btn.success:hover {
+            background: #2ea043;
+        }
+
+        .btn.danger {
+            background: #da3633;
+        }
+        .btn.danger:hover {
+            background: #f85149;
+        }
+
+        .btn.purple {
+            background: #8957e5;
+        }
+        .btn.purple:hover {
+            background: #a371f7;
+        }
+
+        .settings {
+            display: flex;
+            gap: 24px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .settings label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #8b949e;
+            cursor: pointer;
+        }
+
+        .settings input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #58a6ff;
+            cursor: pointer;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: #161b22;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid #30363d;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            top: 12px;
+            right: 20px;
+            font-size: 28px;
+            color: #8b949e;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close:hover {
+            color: #f0f6fc;
+        }
+
+        #statsText {
+            color: #f0f6fc;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.8;
+            margin-top: 8px;
+        }
+
+        footer {
+            margin-top: 28px;
+            padding-top: 18px;
+            border-top: 1px solid #30363d;
+            text-align: center;
+            color: #8b949e;
+            font-size: 14px;
+        }
+
+        footer strong {
+            color: #58a6ff;
+            -webkit-text-fill-color: #58a6ff;
+        }
+    </style>
 </head>
 <body>
 
@@ -13,7 +284,7 @@
 
         <!-- Шапка -->
         <header>
-            <img src="logo.jpg" alt="VPN From Kirill" class="logo" />
+            <img src="https://raw.githubusercontent.com/MrZidez/free-sub/main/logo.jpg" alt="VPN From Kirill" class="logo" />
             <h1>🚀 HAPP Config Converter</h1>
             <p class="subtitle">by <strong>VPN From Kirill</strong></p>
         </header>
@@ -57,14 +328,16 @@
                     <button class="btn purple" onclick="showStats()">📊 Статистика</button>
                     <button class="btn danger" onclick="clearOutput()">🗑️ Очистить</button>
                 </div>
-                <div id="statsModal" class="modal hidden">
-                    <div class="modal-content">
-                        <span class="close" onclick="closeStats()">&times;</span>
-                        <pre id="statsText"></pre>
-                    </div>
-                </div>
             </section>
 
+        </div>
+
+        <!-- Модалка статистики -->
+        <div id="statsModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close" onclick="closeStats()">&times;</span>
+                <pre id="statsText"></pre>
+            </div>
         </div>
 
         <!-- Футер -->
@@ -74,6 +347,584 @@
 
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // ============================================================
+        //  ВСЯ ЛОГИКА КОНВЕРТАЦИИ НА КЛИЕНТЕ (БЕЗ СЕРВЕРА)
+        // ============================================================
+
+        // ===== СОСТОЯНИЕ =====
+        let lastInput = '';
+        let convertedData = null;
+
+        // ===== DOM =====
+        const inputArea = document.getElementById('inputArea');
+        const outputArea = document.getElementById('outputArea');
+        const linkCount = document.getElementById('linkCount');
+        const statsLabel = document.getElementById('statsLabel');
+        const autoConvert = document.getElementById('autoConvert');
+        const prettyJson = document.getElementById('prettyJson');
+
+        // ===== СОБЫТИЯ =====
+        inputArea.addEventListener('input', () => {
+            updateLinkCount();
+            if (autoConvert.checked) {
+                convert();
+            }
+        });
+
+        inputArea.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                convert();
+            }
+        });
+
+        // ===== ФУНКЦИИ =====
+
+        function updateLinkCount() {
+            const text = inputArea.value;
+            const lines = text.split('\n').filter(l => l.trim());
+            const links = lines.filter(l => /^(vless:\/\/|hysteria2:\/\/|trojan:\/\/|vmess:\/\/|ss:\/\/)/.test(l.trim()));
+            linkCount.textContent = `${lines.length} строк, ${links.length} ссылок`;
+        }
+
+        function pasteFromClipboard() {
+            navigator.clipboard.readText().then(text => {
+                inputArea.value = text;
+                updateLinkCount();
+                if (autoConvert.checked) convert();
+            }).catch(() => {
+                alert('Не удалось получить данные из буфера обмена');
+            });
+        }
+
+        function clearInput() {
+            inputArea.value = '';
+            updateLinkCount();
+            lastInput = '';
+        }
+
+        function clearOutput() {
+            outputArea.value = '';
+            statsLabel.textContent = 'Ожидание…';
+            convertedData = null;
+        }
+
+        function copyJson() {
+            const text = outputArea.value;
+            if (!text) {
+                alert('Нет данных для копирования');
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.btn.success');
+                const orig = btn.textContent;
+                btn.textContent = '✅ Скопировано!';
+                setTimeout(() => btn.textContent = orig, 1500);
+            });
+        }
+
+        function showStats() {
+            if (!convertedData) {
+                alert('Сначала сконвертируйте данные');
+                return;
+            }
+            const modal = document.getElementById('statsModal');
+            const text = document.getElementById('statsText');
+            const groups = convertedData.length;
+            let servers = 0;
+            const protocols = {};
+            for (const g of convertedData) {
+                for (const ob of g.outbounds || []) {
+                    if (ob.tag && !['direct', 'block'].includes(ob.tag)) {
+                        servers++;
+                        const proto = ob.protocol || 'unknown';
+                        protocols[proto] = (protocols[proto] || 0) + 1;
+                    }
+                }
+            }
+            let protoStr = Object.entries(protocols)
+                .map(([k, v]) => `   • ${k}: ${v}`)
+                .join('\n');
+            if (!protoStr) protoStr = '   • Не определено';
+
+            text.textContent = `
+        📊 СТАТИСТИКА КОНФИГУРАЦИИ
+
+        📁 Групп: ${groups}
+        🌐 Всего серверов: ${servers}
+
+        📝 Протоколы:
+        ${protoStr}
+
+        ✅ Конфигурация готова к использованию в HAPP
+        💡 Размер: ${outputArea.value.length} символов
+            `.trim();
+            modal.classList.remove('hidden');
+        }
+
+        function closeStats() {
+            document.getElementById('statsModal').classList.add('hidden');
+        }
+
+        // ===== ОСНОВНАЯ ЛОГИКА КОНВЕРТАЦИИ =====
+
+        function parseVless(url) {
+            url = url.replace('vless://', '');
+            let tag = '';
+            if (url.includes('#')) {
+                const parts = url.split('#');
+                url = parts[0];
+                tag = decodeURIComponent(parts[1] || '').trim();
+            }
+            if (!tag) tag = 'proxy';
+
+            if (!url.includes('@')) return null;
+            const [uid, rest] = url.split('@', 2);
+            let addrPort = rest,
+                params = '';
+            if (rest.includes('?')) {
+                const parts = rest.split('?');
+                addrPort = parts[0];
+                params = parts[1] || '';
+            }
+            if (!addrPort.includes(':')) return null;
+            const [address, port] = addrPort.split(':', 2);
+
+            const param = {};
+            if (params) {
+                for (const p of params.split('&')) {
+                    if (p.includes('=')) {
+                        const [k, v] = p.split('=', 2);
+                        param[k] = (k === 'path' || k === 'host') ? decodeURIComponent(v) : v;
+                    }
+                }
+            }
+
+            const network = param.type || 'tcp';
+            const security = param.security || 'none';
+
+            const outbound = {
+                tag: tag,
+                protocol: 'vless',
+                settings: {
+                    vnext: [{
+                        address: address,
+                        port: parseInt(port),
+                        users: [{
+                            id: uid,
+                            encryption: param.encryption || 'none',
+                            flow: param.flow || '',
+                            level: 0
+                        }]
+                    }]
+                }
+            };
+
+            const stream = { network: network, security: security };
+
+            if (network === 'ws') {
+                const ws = {};
+                if (param.path) ws.path = param.path;
+                if (param.host) ws.headers = { Host: param.host };
+                else if (param.sni) ws.headers = { Host: param.sni };
+                stream.wsSettings = ws;
+            }
+
+            if (security === 'tls') {
+                const tls = {};
+                if (param.sni) tls.serverName = param.sni;
+                else if (param.host) tls.serverName = param.host;
+                tls.fingerprint = param.fp || 'chrome';
+                stream.tlsSettings = tls;
+            } else if (security === 'reality') {
+                const reality = {};
+                if (param.sni) reality.serverName = param.sni;
+                if (param.fp) reality.fingerprint = param.fp;
+                if (param.pbk) reality.publicKey = param.pbk;
+                if (param.sid) reality.shortId = param.sid;
+                stream.realitySettings = reality;
+            }
+
+            if (network === 'xhttp') {
+                const xhttp = {};
+                if (param.path) xhttp.path = param.path;
+                if (param.mode) xhttp.mode = param.mode;
+                if (param.host) xhttp.host = param.host;
+                if (param.extra) {
+                    try { xhttp.extra = JSON.parse(param.extra); } catch {}
+                }
+                stream.xhttpSettings = xhttp;
+            } else if (network === 'grpc') {
+                const grpc = {};
+                if (param.serviceName) grpc.serviceName = param.serviceName;
+                if (param.mode === 'gun') grpc.multiMode = true;
+                stream.grpcSettings = grpc;
+            }
+
+            if (Object.keys(stream).length > 1) {
+                outbound.streamSettings = stream;
+            }
+
+            return outbound;
+        }
+
+        function parseHysteria2(url) {
+            url = url.replace('hysteria2://', '');
+            let tag = '';
+            if (url.includes('#')) {
+                const parts = url.split('#');
+                url = parts[0];
+                tag = decodeURIComponent(parts[1] || '').trim();
+            }
+            if (!tag) tag = 'proxy';
+
+            if (!url.includes('@')) return null;
+            const [auth, rest] = url.split('@', 2);
+            let addrPort = rest,
+                params = '';
+            if (rest.includes('?')) {
+                const parts = rest.split('?');
+                addrPort = parts[0];
+                params = parts[1] || '';
+            }
+            if (!addrPort.includes(':')) return null;
+            const [address, port] = addrPort.split(':', 2);
+
+            const param = {};
+            if (params) {
+                for (const p of params.split('&')) {
+                    if (p.includes('=')) {
+                        const [k, v] = p.split('=', 2);
+                        param[k] = (k === 'sni') ? decodeURIComponent(v) : v;
+                    }
+                }
+            }
+
+            const outbound = {
+                tag: tag,
+                protocol: 'hysteria',
+                settings: { address: address, port: parseInt(port), version: 2 },
+                streamSettings: {
+                    network: 'hysteria',
+                    security: 'tls',
+                    hysteriaSettings: { version: 2, auth: auth }
+                }
+            };
+
+            const tls = {};
+            if (param.sni) tls.serverName = param.sni;
+            if (param.fp) tls.fingerprint = param.fp;
+            if (Object.keys(tls).length) {
+                outbound.streamSettings.tlsSettings = tls;
+            }
+
+            return outbound;
+        }
+
+        function parseTrojan(url) {
+            url = url.replace('trojan://', '');
+            let tag = '';
+            if (url.includes('#')) {
+                const parts = url.split('#');
+                url = parts[0];
+                tag = decodeURIComponent(parts[1] || '').trim();
+            }
+            if (!tag) tag = 'proxy';
+
+            if (!url.includes('@')) return null;
+            const [password, rest] = url.split('@', 2);
+            let addrPort = rest,
+                params = '';
+            if (rest.includes('?')) {
+                const parts = rest.split('?');
+                addrPort = parts[0];
+                params = parts[1] || '';
+            }
+            if (!addrPort.includes(':')) return null;
+            const [address, port] = addrPort.split(':', 2);
+
+            const param = {};
+            if (params) {
+                for (const p of params.split('&')) {
+                    if (p.includes('=')) {
+                        const [k, v] = p.split('=', 2);
+                        param[k] = (k === 'path' || k === 'host') ? decodeURIComponent(v) : v;
+                    }
+                }
+            }
+
+            const network = param.type || 'tcp';
+            const security = param.security || 'tls';
+
+            const outbound = {
+                tag: tag,
+                protocol: 'trojan',
+                settings: {
+                    servers: [{ address: address, port: parseInt(port), password: password }]
+                }
+            };
+
+            const stream = { network: network, security: security };
+
+            if (security === 'tls') {
+                const tls = {};
+                if (param.sni) tls.serverName = param.sni;
+                else if (param.host) tls.serverName = param.host;
+                if (param.fp) tls.fingerprint = param.fp;
+                stream.tlsSettings = tls;
+            }
+
+            if (network === 'ws') {
+                const ws = {};
+                if (param.path) ws.path = param.path;
+                if (param.host) ws.headers = { Host: param.host };
+                stream.wsSettings = ws;
+            }
+
+            if (Object.keys(stream).length > 1) {
+                outbound.streamSettings = stream;
+            }
+
+            return outbound;
+        }
+
+        function parseVmess(url) {
+            url = url.replace('vmess://', '');
+            try {
+                const decoded = atob(url);
+                const config = JSON.parse(decoded);
+                let uid = config.id || '';
+                if (uid.length > 36) uid = uid.slice(0, 36);
+                let tag = config.ps || 'proxy';
+                try { tag = decodeURIComponent(tag); } catch {}
+
+                const outbound = {
+                    tag: tag,
+                    protocol: 'vmess',
+                    settings: {
+                        vnext: [{
+                            address: config.add || '',
+                            port: parseInt(config.port || 0),
+                            users: [{
+                                id: uid,
+                                alterId: parseInt(config.aid || 0),
+                                security: config.scy || 'auto'
+                            }]
+                        }]
+                    },
+                    streamSettings: {
+                        network: config.net || 'tcp',
+                        security: config.tls || 'none'
+                    }
+                };
+
+                if ((config.net || '') === 'ws') {
+                    const ws = {};
+                    if (config.path) ws.path = config.path;
+                    if (config.host) ws.headers = { Host: config.host };
+                    outbound.streamSettings.wsSettings = ws;
+                }
+
+                if ((config.tls || '') === 'tls') {
+                    const tls = {};
+                    if (config.sni) tls.serverName = config.sni;
+                    if (config.fp) tls.fingerprint = config.fp;
+                    outbound.streamSettings.tlsSettings = tls;
+                }
+
+                return outbound;
+            } catch {
+                return null;
+            }
+        }
+
+        function parseShadowsocks(url) {
+            url = url.replace('ss://', '');
+            let tag = '';
+            if (url.includes('#')) {
+                const parts = url.split('#');
+                url = parts[0];
+                tag = decodeURIComponent(parts[1] || '').trim();
+            }
+            if (!tag) tag = 'proxy';
+
+            if (url.includes('@')) {
+                const [methodPassword, rest] = url.split('@', 2);
+                let method = 'aes-256-gcm',
+                    password = methodPassword;
+                if (methodPassword.includes(':')) {
+                    const parts = methodPassword.split(':');
+                    method = parts[0];
+                    password = parts[1] || '';
+                }
+                let addrPort = rest;
+                if (rest.includes('?')) {
+                    addrPort = rest.split('?')[0];
+                }
+                if (!addrPort.includes(':')) return null;
+                const [address, port] = addrPort.split(':', 2);
+
+                return {
+                    tag: tag,
+                    protocol: 'shadowsocks',
+                    settings: {
+                        servers: [{
+                            address: address,
+                            port: parseInt(port),
+                            method: method,
+                            password: password
+                        }]
+                    }
+                };
+            }
+            return null;
+        }
+
+        function parseLink(entry) {
+            const url = entry.data || '';
+            const type = entry.type || '';
+            try {
+                if (type === 'vless') return parseVless(url);
+                if (type === 'hysteria2') return parseHysteria2(url);
+                if (type === 'trojan') return parseTrojan(url);
+                if (type === 'vmess') return parseVmess(url);
+                if (type === 'ss') return parseShadowsocks(url);
+                if (type === 'json') return entry.data;
+            } catch (e) {
+                console.warn('Ошибка парсинга:', e);
+            }
+            return null;
+        }
+
+        function convertGroups(groups) {
+            const result = [];
+            for (const g of groups) {
+                const outbounds = [];
+                let counter = 1;
+                for (const entry of g.servers || []) {
+                    const ob = parseLink(entry);
+                    if (ob) {
+                        if (ob.tag === 'proxy') {
+                            ob.tag = `proxy-${counter}`;
+                            counter++;
+                        }
+                        outbounds.push(ob);
+                    }
+                }
+                if (!outbounds.length) continue;
+
+                outbounds.push({ tag: 'direct', protocol: 'freedom' });
+                outbounds.push({ tag: 'block', protocol: 'blackhole' });
+
+                result.push({
+                    remarks: g.name,
+                    dns: {
+                        servers: ['1.1.1.1', '1.0.0.1'],
+                        queryStrategy: 'UseIP'
+                    },
+                    routing: {
+                        rules: [{ type: 'field', protocol: ['bittorrent'], outboundTag: 'direct' }],
+                        domainMatcher: 'hybrid',
+                        domainStrategy: 'IPIfNonMatch'
+                    },
+                    inbounds: [{
+                        tag: 'socks',
+                        port: 10808,
+                        listen: '127.0.0.1',
+                        protocol: 'socks',
+                        settings: { udp: true, auth: 'noauth' },
+                        sniffing: { enabled: true, routeOnly: false, destOverride: ['http', 'tls', 'quic'] }
+                    }, {
+                        tag: 'http',
+                        port: 10809,
+                        listen: '127.0.0.1',
+                        protocol: 'http',
+                        settings: { allowTransparent: false },
+                        sniffing: { enabled: true, routeOnly: false, destOverride: ['http', 'tls', 'quic'] }
+                    }],
+                    outbounds: outbounds
+                });
+            }
+            return result;
+        }
+
+        function convert() {
+            const text = inputArea.value.trim();
+            if (!text) {
+                outputArea.value = '';
+                statsLabel.textContent = 'Нет данных';
+                convertedData = null;
+                return;
+            }
+
+            const lines = text.split('\n');
+            const groups = [];
+            let currentGroup = null;
+            let currentServers = [];
+
+            const groupRegex = /^[🇦-🇿]+\s*.*/;
+
+            for (const raw of lines) {
+                const line = raw.trim();
+                if (!line) continue;
+
+                const isLink = /^(vless:\/\/|hysteria2:\/\/|trojan:\/\/|vmess:\/\/|ss:\/\/)/.test(line);
+                const isJson = line.startsWith('{');
+
+                if (groupRegex.test(line) && !isLink && !isJson) {
+                    if (currentGroup && currentServers.length) {
+                        groups.push({ name: currentGroup, servers: currentServers });
+                    }
+                    currentGroup = line;
+                    currentServers = [];
+                } else if (isLink) {
+                    const type = line.split(':')[0];
+                    currentServers.push({ type: type, data: line });
+                } else if (isJson) {
+                    try {
+                        const parsed = JSON.parse(line);
+                        currentServers.push({ type: 'json', data: parsed });
+                    } catch {}
+                } else if (!currentGroup && isLink) {
+                    currentGroup = 'Без названия';
+                    const type = line.split(':')[0];
+                    currentServers.push({ type: type, data: line });
+                }
+            }
+
+            if (currentGroup && currentServers.length) {
+                groups.push({ name: currentGroup, servers: currentServers });
+            }
+
+            if (!groups.length) {
+                outputArea.value = '';
+                statsLabel.textContent = 'Нет групп';
+                convertedData = null;
+                return;
+            }
+
+            const result = convertGroups(groups);
+            const json = prettyJson.checked ?
+                JSON.stringify(result, null, 2) :
+                JSON.stringify(result);
+
+            outputArea.value = json;
+            convertedData = result;
+
+            const total = result.reduce((acc, g) => {
+                return acc + (g.outbounds?.filter(o => !['direct', 'block'].includes(o.tag)).length || 0);
+            }, 0);
+            statsLabel.textContent = `📊 ${result.length} групп, ${total} серверов`;
+        }
+
+        // ===== ПЕРВАЯ КОНВЕРТАЦИЯ ПРИ ЗАГРУЗКЕ =====
+        // (если есть текст в поле ввода)
+        setTimeout(() => {
+            if (inputArea.value.trim()) {
+                convert();
+            }
+        }, 100);
+    </script>
+
 </body>
 </html>
