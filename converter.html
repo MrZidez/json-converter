@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>VPN From Kirill — HAPP Config Converter</title>
     <style>
-        /* ===== Стили внутри index.html ===== */
+        /* ===== Стили ===== */
         * {
             margin: 0;
             padding: 0;
@@ -24,7 +24,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             width: 100%;
             background: #161b22;
             border-radius: 24px;
@@ -111,13 +111,13 @@
 
         textarea {
             flex: 1;
-            min-height: 300px;
+            min-height: 350px;
             background: #0d1117;
             border: 1px solid #30363d;
             border-radius: 12px;
             color: #f0f6fc;
             font-family: 'JetBrains Mono', 'Consolas', monospace;
-            font-size: 14px;
+            font-size: 13px;
             padding: 14px;
             resize: vertical;
             outline: none;
@@ -187,6 +187,13 @@
         }
         .btn.purple:hover {
             background: #a371f7;
+        }
+
+        .btn.orange {
+            background: #d29922;
+        }
+        .btn.orange:hover {
+            background: #e3b341;
         }
 
         .settings {
@@ -276,6 +283,29 @@
             color: #58a6ff;
             -webkit-text-fill-color: #58a6ff;
         }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding: 8px 14px;
+            background: #0d1117;
+            border-radius: 10px;
+            border: 1px solid #21262d;
+            font-size: 13px;
+            color: #8b949e;
+        }
+
+        .status-bar .success {
+            color: #3fb950;
+        }
+        .status-bar .error {
+            color: #f85149;
+        }
+        .status-bar .info {
+            color: #58a6ff;
+        }
     </style>
 </head>
 <body>
@@ -298,7 +328,7 @@
                     <span>📝 Ввод</span>
                     <span class="badge" id="linkCount">0 ссылок</span>
                 </div>
-                <textarea id="inputArea" placeholder="Вставьте VLESS, Hysteria2, Trojan, VMESS, Shadowsocks ссылки или JSON…"></textarea>
+                <textarea id="inputArea" placeholder="Вставьте VLESS, Hysteria2, Trojan, VMESS, Shadowsocks ссылки…"></textarea>
                 <div class="toolbar">
                     <button class="btn primary" onclick="pasteFromClipboard()">📋 Вставить</button>
                     <button class="btn success" onclick="convert()">🔄 Конвертировать</button>
@@ -314,6 +344,9 @@
                         📐 Форматировать JSON
                     </label>
                 </div>
+                <div class="status-bar" id="inputStatus">
+                    <span>💡 Нажмите "Конвертировать" или используйте Ctrl+Enter</span>
+                </div>
             </section>
 
             <!-- Вывод -->
@@ -324,9 +357,14 @@
                 </div>
                 <textarea id="outputArea" readonly placeholder="Здесь появится готовый JSON…"></textarea>
                 <div class="toolbar">
-                    <button class="btn success" onclick="copyJson()">📋 Копировать JSON</button>
+                    <button class="btn success" onclick="copyJson()">📋 Копировать</button>
+                    <button class="btn orange" onclick="saveJson()">💾 Сохранить</button>
                     <button class="btn purple" onclick="showStats()">📊 Статистика</button>
                     <button class="btn danger" onclick="clearOutput()">🗑️ Очистить</button>
+                </div>
+                <div class="status-bar" id="outputStatus">
+                    <span>📏 Размер: <span id="outputSize">0</span> символов</span>
+                    <span id="serverCount">🌐 0 серверов</span>
                 </div>
             </section>
 
@@ -349,7 +387,7 @@
 
     <script>
         // ============================================================
-        //  ВСЯ ЛОГИКА КОНВЕРТАЦИИ НА КЛИЕНТЕ (БЕЗ СЕРВЕРА)
+        //  ВСЯ ЛОГИКА КОНВЕРТАЦИИ НА КЛИЕНТЕ
         // ============================================================
 
         // ===== СОСТОЯНИЕ =====
@@ -361,6 +399,8 @@
         const outputArea = document.getElementById('outputArea');
         const linkCount = document.getElementById('linkCount');
         const statsLabel = document.getElementById('statsLabel');
+        const outputSize = document.getElementById('outputSize');
+        const serverCount = document.getElementById('serverCount');
         const autoConvert = document.getElementById('autoConvert');
         const prettyJson = document.getElementById('prettyJson');
 
@@ -374,6 +414,7 @@
 
         inputArea.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
                 convert();
             }
         });
@@ -406,6 +447,8 @@
         function clearOutput() {
             outputArea.value = '';
             statsLabel.textContent = 'Ожидание…';
+            outputSize.textContent = '0';
+            serverCount.textContent = '🌐 0 серверов';
             convertedData = null;
         }
 
@@ -416,11 +459,26 @@
                 return;
             }
             navigator.clipboard.writeText(text).then(() => {
-                const btn = document.querySelector('.btn.success');
+                const btn = event?.target || document.querySelector('.btn.success');
                 const orig = btn.textContent;
                 btn.textContent = '✅ Скопировано!';
                 setTimeout(() => btn.textContent = orig, 1500);
             });
+        }
+
+        function saveJson() {
+            const text = outputArea.value;
+            if (!text) {
+                alert('Нет данных для сохранения');
+                return;
+            }
+            const blob = new Blob([text], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `happ_config_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         function showStats() {
@@ -551,7 +609,7 @@
                 if (param.mode) xhttp.mode = param.mode;
                 if (param.host) xhttp.host = param.host;
                 if (param.extra) {
-                    try { xhttp.extra = JSON.parse(param.extra); } catch {}
+                    try { xhttp.extra = JSON.parse(param.extra); } catch (e) {}
                 }
                 stream.xhttpSettings = xhttp;
             } else if (network === 'grpc') {
@@ -696,7 +754,7 @@
                 let uid = config.id || '';
                 if (uid.length > 36) uid = uid.slice(0, 36);
                 let tag = config.ps || 'proxy';
-                try { tag = decodeURIComponent(tag); } catch {}
+                try { tag = decodeURIComponent(tag); } catch (e) {}
 
                 const outbound = {
                     tag: tag,
@@ -733,7 +791,7 @@
                 }
 
                 return outbound;
-            } catch {
+            } catch (e) {
                 return null;
             }
         }
@@ -801,16 +859,23 @@
             for (const g of groups) {
                 const outbounds = [];
                 let counter = 1;
+                const usedTags = new Set();
+
                 for (const entry of g.servers || []) {
                     const ob = parseLink(entry);
                     if (ob) {
-                        if (ob.tag === 'proxy') {
-                            ob.tag = `proxy-${counter}`;
+                        // Убеждаемся, что тег уникальный
+                        let tag = ob.tag || 'proxy';
+                        if (tag === 'proxy' || usedTags.has(tag)) {
+                            tag = `proxy-${counter}`;
                             counter++;
                         }
+                        ob.tag = tag;
+                        usedTags.add(tag);
                         outbounds.push(ob);
                     }
                 }
+
                 if (!outbounds.length) continue;
 
                 outbounds.push({ tag: 'direct', protocol: 'freedom' });
@@ -853,6 +918,8 @@
             if (!text) {
                 outputArea.value = '';
                 statsLabel.textContent = 'Нет данных';
+                outputSize.textContent = '0';
+                serverCount.textContent = '🌐 0 серверов';
                 convertedData = null;
                 return;
             }
@@ -884,7 +951,7 @@
                     try {
                         const parsed = JSON.parse(line);
                         currentServers.push({ type: 'json', data: parsed });
-                    } catch {}
+                    } catch (e) {}
                 } else if (!currentGroup && isLink) {
                     currentGroup = 'Без названия';
                     const type = line.split(':')[0];
@@ -899,6 +966,8 @@
             if (!groups.length) {
                 outputArea.value = '';
                 statsLabel.textContent = 'Нет групп';
+                outputSize.textContent = '0';
+                serverCount.textContent = '🌐 0 серверов';
                 convertedData = null;
                 return;
             }
@@ -910,15 +979,16 @@
 
             outputArea.value = json;
             convertedData = result;
+            outputSize.textContent = json.length;
 
             const total = result.reduce((acc, g) => {
                 return acc + (g.outbounds?.filter(o => !['direct', 'block'].includes(o.tag)).length || 0);
             }, 0);
             statsLabel.textContent = `📊 ${result.length} групп, ${total} серверов`;
+            serverCount.textContent = `🌐 ${total} серверов`;
         }
 
         // ===== ПЕРВАЯ КОНВЕРТАЦИЯ ПРИ ЗАГРУЗКЕ =====
-        // (если есть текст в поле ввода)
         setTimeout(() => {
             if (inputArea.value.trim()) {
                 convert();
