@@ -1,4 +1,4 @@
-/* Общие */
+/* ===== Стили ===== */
 * {
     margin: 0;
     padding: 0;
@@ -14,19 +14,76 @@ body {
     justify-content: center;
     align-items: center;
     padding: 20px;
+    transition: background 0.3s, color 0.3s;
+}
+
+body.light-theme {
+    background: #f0f6fc;
+    color: #0d1117;
+}
+
+body.light-theme .container {
+    background: #ffffff;
+    border-color: #d0d7de;
+}
+
+body.light-theme .card {
+    background: #f6f8fa;
+    border-color: #d0d7de;
+}
+
+body.light-theme textarea {
+    background: #ffffff;
+    color: #0d1117;
+    border-color: #d0d7de;
+}
+
+body.light-theme textarea[readonly] {
+    background: #f6f8fa;
+}
+
+body.light-theme .status-bar {
+    background: #f6f8fa;
+    border-color: #d0d7de;
+    color: #57606a;
+}
+
+body.light-theme .badge {
+    background: #d0d7de;
+    color: #24292f;
+}
+
+body.light-theme .debug-console {
+    background: #f6f8fa;
+    border-color: #d0d7de;
+    color: #24292f;
+}
+
+body.light-theme .modal-content {
+    background: #ffffff;
+    border-color: #d0d7de;
+}
+
+body.light-theme footer {
+    border-color: #d0d7de;
+    color: #57606a;
+}
+
+body.light-theme .settings label {
+    color: #57606a;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1300px;
     width: 100%;
     background: #161b22;
     border-radius: 24px;
     padding: 30px;
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
     border: 1px solid #30363d;
+    transition: background 0.3s, border-color 0.3s;
 }
 
-/* Шапка */
 header {
     display: flex;
     align-items: center;
@@ -63,7 +120,23 @@ header h1 {
     -webkit-text-fill-color: #58a6ff;
 }
 
-/* Сетка */
+.theme-toggle {
+    background: #21262d;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #f0f6fc;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    background: #30363d;
+}
+
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -76,7 +149,6 @@ header h1 {
     }
 }
 
-/* Карточки */
 .card {
     background: #0d1117;
     border-radius: 16px;
@@ -84,6 +156,7 @@ header h1 {
     border: 1px solid #30363d;
     display: flex;
     flex-direction: column;
+    transition: background 0.3s, border-color 0.3s;
 }
 
 .card-header {
@@ -103,22 +176,22 @@ header h1 {
     font-size: 13px;
     font-weight: 400;
     color: #8b949e;
+    transition: background 0.3s, color 0.3s;
 }
 
-/* Textarea */
 textarea {
     flex: 1;
-    min-height: 300px;
+    min-height: 350px;
     background: #0d1117;
     border: 1px solid #30363d;
     border-radius: 12px;
     color: #f0f6fc;
     font-family: 'JetBrains Mono', 'Consolas', monospace;
-    font-size: 14px;
+    font-size: 13px;
     padding: 14px;
     resize: vertical;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, background 0.3s, color 0.3s;
     line-height: 1.6;
 }
 
@@ -130,7 +203,6 @@ textarea[readonly] {
     background: #161b22;
 }
 
-/* Toolbar */
 .toolbar {
     display: flex;
     gap: 10px;
@@ -187,7 +259,13 @@ textarea[readonly] {
     background: #a371f7;
 }
 
-/* Настройки */
+.btn.orange {
+    background: #d29922;
+}
+.btn.orange:hover {
+    background: #e3b341;
+}
+
 .settings {
     display: flex;
     gap: 24px;
@@ -202,6 +280,7 @@ textarea[readonly] {
     font-size: 14px;
     color: #8b949e;
     cursor: pointer;
+    transition: color 0.3s;
 }
 
 .settings input[type="checkbox"] {
@@ -211,7 +290,83 @@ textarea[readonly] {
     cursor: pointer;
 }
 
-/* Модалка */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 8px 14px;
+    background: #0d1117;
+    border-radius: 10px;
+    border: 1px solid #21262d;
+    font-size: 13px;
+    color: #8b949e;
+    min-height: 40px;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.status-bar .success {
+    color: #3fb950;
+}
+.status-bar .error {
+    color: #f85149;
+}
+.status-bar .info {
+    color: #58a6ff;
+}
+
+.debug-console {
+    margin-top: 15px;
+    background: #0d1117;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    color: #8b949e;
+    display: none;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.debug-console .log-error {
+    color: #f85149;
+}
+.debug-console .log-success {
+    color: #3fb950;
+}
+.debug-console .log-info {
+    color: #58a6ff;
+}
+.debug-console .log-warning {
+    color: #d29922;
+}
+
+.debug-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #30363d;
+    font-weight: 600;
+}
+
+.debug-close {
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 8px;
+}
+.debug-close:hover {
+    color: #f85149;
+}
+
+#debugLog {
+    font-size: 12px;
+    line-height: 1.8;
+}
+
 .modal {
     position: fixed;
     top: 0;
@@ -238,6 +393,7 @@ textarea[readonly] {
     width: 90%;
     border: 1px solid #30363d;
     position: relative;
+    transition: background 0.3s, border-color 0.3s;
 }
 
 .close {
@@ -263,7 +419,6 @@ textarea[readonly] {
     margin-top: 8px;
 }
 
-/* Футер */
 footer {
     margin-top: 28px;
     padding-top: 18px;
@@ -271,6 +426,7 @@ footer {
     text-align: center;
     color: #8b949e;
     font-size: 14px;
+    transition: border-color 0.3s, color 0.3s;
 }
 
 footer strong {
