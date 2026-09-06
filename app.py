@@ -400,7 +400,7 @@ def convert_groups(groups):
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return send_from_directory('.', 'converter.html')
 
 @app.route('/style.css')
 def style():
