@@ -315,11 +315,11 @@
                 </div>
                 <textarea id="inputArea" placeholder="Вставьте VLESS, Hysteria2, Trojan, VMESS ссылки..."></textarea>
                 <div class="toolbar">
-                    <button class="btn primary" onclick="window.doPaste()">📋 Вставить</button>
-                    <button class="btn success" onclick="window.doConvert()">🔄 Конвертировать</button>
-                    <button class="btn danger" onclick="window.doClearInput()">🗑️ Очистить</button>
-                    <button class="btn orange" onclick="window.toggleDebug()">🐛 Отладка</button>
-                    <button class="example-btn" onclick="window.loadExample()">📄 Пример</button>
+                    <button class="btn primary" onclick="doPaste()">📋 Вставить</button>
+                    <button class="btn success" onclick="doConvert()">🔄 Конвертировать</button>
+                    <button class="btn danger" onclick="doClearInput()">🗑️ Очистить</button>
+                    <button class="btn orange" onclick="toggleDebug()">🐛 Отладка</button>
+                    <button class="example-btn" onclick="loadExample()">📄 Пример</button>
                 </div>
                 <div class="settings">
                     <label><input type="checkbox" id="autoConvert" checked /> Автоконвертация</label>
@@ -336,10 +336,10 @@
                 </div>
                 <textarea id="outputArea" readonly placeholder="Здесь будет JSON..."></textarea>
                 <div class="toolbar">
-                    <button class="btn success" onclick="window.doCopy()">📋 Копировать</button>
-                    <button class="btn orange" onclick="window.doSave()">💾 Сохранить</button>
-                    <button class="btn purple" onclick="window.doStats()">📊 Статистика</button>
-                    <button class="btn danger" onclick="window.doClearOutput()">🗑️ Очистить</button>
+                    <button class="btn success" onclick="doCopy()">📋 Копировать</button>
+                    <button class="btn orange" onclick="doSave()">💾 Сохранить</button>
+                    <button class="btn purple" onclick="doStats()">📊 Статистика</button>
+                    <button class="btn danger" onclick="doClearOutput()">🗑️ Очистить</button>
                 </div>
                 <div class="status-bar">
                     <span>📏 <span id="outputSize">0</span> символов</span>
@@ -351,14 +351,14 @@
 
         <!-- ОТЛАДКА -->
         <div class="debug-console" id="debugConsole">
-            <div class="debug-header"><span>🐛 Отладка</span><span class="debug-close" onclick="window.toggleDebug()">✕</span></div>
+            <div class="debug-header"><span>🐛 Отладка</span><span class="debug-close" onclick="toggleDebug()">✕</span></div>
             <div id="debugLog"></div>
         </div>
 
         <!-- СТАТИСТИКА -->
         <div id="statsModal" class="modal hidden">
             <div class="modal-content">
-                <span class="close" onclick="window.closeStats()">&times;</span>
+                <span class="close" onclick="closeStats()">&times;</span>
                 <pre id="statsText"></pre>
             </div>
         </div>
@@ -373,145 +373,155 @@
         // ======================================================================
 
         // ---- ОТЛАДКА ----
-        let debugVisible = false;
-        const debugLog = document.getElementById('debugLog');
+        var debugVisible = false;
+        var debugLog = document.getElementById('debugLog');
 
         function log(msg, type) {
             type = type || 'info';
-            const cls = { error: 'err', success: 'ok', info: 'info', warning: 'warn' } [type] || 'info';
-            const time = new Date().toLocaleTimeString();
-            debugLog.innerHTML += `<div><span class="${cls}">[${time}] ${msg}</span></div>`;
+            var cls = { error: 'err', success: 'ok', info: 'info', warning: 'warn' } [type] || 'info';
+            var time = new Date().toLocaleTimeString();
+            debugLog.innerHTML += '<div><span class="' + cls + '">[' + time + '] ' + msg + '</span></div>';
             debugLog.scrollTop = debugLog.scrollHeight;
-            console.log(`[${type}] ${msg}`);
+            console.log('[' + type + '] ' + msg);
         }
 
-        window.toggleDebug = function() {
-            const el = document.getElementById('debugConsole');
+        function toggleDebug() {
+            var el = document.getElementById('debugConsole');
             debugVisible = !debugVisible;
             el.style.display = debugVisible ? 'block' : 'none';
             if (debugVisible) log('🐛 Отладка включена', 'info');
-        };
+        }
 
         // ---- DOM ----
-        const inputArea = document.getElementById('inputArea');
-        const outputArea = document.getElementById('outputArea');
-        const linkCount = document.getElementById('linkCount');
-        const statsLabel = document.getElementById('statsLabel');
-        const outputSize = document.getElementById('outputSize');
-        const serverCount = document.getElementById('serverCount');
-        const inputStatus = document.getElementById('inputStatus');
-        const autoConvert = document.getElementById('autoConvert');
-        const prettyJson = document.getElementById('prettyJson');
+        var inputArea = document.getElementById('inputArea');
+        var outputArea = document.getElementById('outputArea');
+        var linkCount = document.getElementById('linkCount');
+        var statsLabel = document.getElementById('statsLabel');
+        var outputSize = document.getElementById('outputSize');
+        var serverCount = document.getElementById('serverCount');
+        var inputStatus = document.getElementById('inputStatus');
+        var autoConvert = document.getElementById('autoConvert');
+        var prettyJson = document.getElementById('prettyJson');
 
-        let convertedData = null;
+        var convertedData = null;
 
         // ---- ПРИМЕР ----
-        window.loadExample = function() {
-            const example = `🇸🇴 Авто выбор локации 🚀
-        vless://...
-        vless://...
-        
-        🇸🇪 Швеция
-        vless://...`;
+        function loadExample() {
+            var example = '🇸🇴 Авто выбор локации 🚀\n' +
+                'vless://62611b77-c747-4e39-9cc2-643805a56ccd@194.93.61.107:443?flow=xtls-rprx-vision&encryption=none&security=reality&sni=cdnjs.com&fp=firefox&pbk=0AVsyS7udTbxKRdSyQ2rtFC63icDQOVWq8FvAhhU-WY&sid=cbb0a5c1dc905505&type=tcp&headerType=none#nl\n' +
+                'vless://75bb93eb-2ad1-4172-a65d-b53121b8f9d7@64.188.82.123:443?encryption=none&security=reality&sni=worklist.medic-ml.ru&fp=firefox&pbk=660bDah5b-PtCfAbQ3g2tJySO41zsfaXCPb7L3nQCQc&sid=e1ac2faf5e5f309e&type=xhttp&mode=auto&path=%2Fapi%2Fv2%2Ftelemetry#Estonia\n' +
+                '\n' +
+                '🇸🇪 Швеция\n' +
+                'vless://627c984a-1668-0029-9c65-768b636f727f@95.143.188.10:443?type=xhttp&path=/repository&extra={"xmux":{"cMaxReuseTimes":0,"hKeepAlivePeriod":0,"hMaxRequestTimes":"600-900","hMaxReusableSecs":"1800-3000","maxConnections":2}}&security=reality&sni=git.medrocket.ru&pbk=YHPoUNxsml4z6pYt-7djOb1lqnBjxCk4-2mk84pveyc&sid=3b5b38669a1a51c0#proxy1';
             inputArea.value = example;
             updateLinkCount();
-            if (autoConvert.checked) window.doConvert();
-        };
+            if (autoConvert.checked) doConvert();
+        }
 
         // ---- СЧЕТЧИК ----
         function updateLinkCount() {
-            const text = inputArea.value;
-            const lines = text.split('\n').filter(l => l.trim());
-            const links = lines.filter(l => /^(vless:\/\/|hysteria2:\/\/|trojan:\/\/|vmess:\/\/|ss:\/\/)/.test(l.trim()));
-            linkCount.textContent = `${lines.length} строк, ${links.length} ссылок`;
+            var text = inputArea.value;
+            var lines = text.split('\n').filter(function(l) { return l.trim(); });
+            var links = lines.filter(function(l) { return /^(vless:\/\/|hysteria2:\/\/|trojan:\/\/|vmess:\/\/|ss:\/\/)/.test(l
+                    .trim()); });
+            linkCount.textContent = lines.length + ' строк, ' + links.length + ' ссылок';
         }
 
         // ---- КНОПКИ ----
-        window.doPaste = function() {
-            navigator.clipboard.readText().then(text => {
+        function doPaste() {
+            navigator.clipboard.readText().then(function(text) {
                 inputArea.value = text;
                 updateLinkCount();
-                if (autoConvert.checked) window.doConvert();
-            }).catch(() => alert('Не удалось вставить из буфера'));
-        };
+                if (autoConvert.checked) doConvert();
+            }).catch(function() { alert('Не удалось вставить из буфера'); });
+        }
 
-        window.doClearInput = function() {
+        function doClearInput() {
             inputArea.value = '';
             updateLinkCount();
             inputStatus.innerHTML = '💡 Ввод очищен';
-        };
+        }
 
-        window.doClearOutput = function() {
+        function doClearOutput() {
             outputArea.value = '';
             statsLabel.textContent = 'Ожидание...';
             outputSize.textContent = '0';
             serverCount.textContent = '🌐 0 серверов';
             convertedData = null;
-        };
+        }
 
-        window.doCopy = function() {
-            const text = outputArea.value;
+        function doCopy() {
+            var text = outputArea.value;
             if (!text) return alert('Нет данных');
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = document.querySelector('.btn.success');
-                const orig = btn.textContent;
+            navigator.clipboard.writeText(text).then(function() {
+                var btn = document.querySelector('.btn.success');
+                var orig = btn.textContent;
                 btn.textContent = '✅ Готово!';
-                setTimeout(() => btn.textContent = orig, 1200);
+                setTimeout(function() { btn.textContent = orig; }, 1200);
             });
-        };
+        }
 
-        window.doSave = function() {
-            const text = outputArea.value;
+        function doSave() {
+            var text = outputArea.value;
             if (!text) return alert('Нет данных');
-            const blob = new Blob([text], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            var blob = new Blob([text], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
             a.href = url;
-            a.download = `happ_${new Date().toISOString().slice(0,10)}.json`;
+            a.download = 'happ_' + new Date().toISOString().slice(0, 10) + '.json';
             a.click();
             URL.revokeObjectURL(url);
-        };
+        }
 
-        window.doStats = function() {
+        function doStats() {
             if (!convertedData) return alert('Сначала сконвертируйте данные');
-            const modal = document.getElementById('statsModal');
-            const text = document.getElementById('statsText');
-            let groups = convertedData.length;
-            let servers = 0;
-            let protocols = {};
-            for (const g of convertedData) {
-                for (const ob of g.outbounds || []) {
-                    if (ob.tag && !['direct', 'block'].includes(ob.tag)) {
+            var modal = document.getElementById('statsModal');
+            var text = document.getElementById('statsText');
+            var groups = convertedData.length;
+            var servers = 0;
+            var protocols = {};
+            for (var i = 0; i < convertedData.length; i++) {
+                var g = convertedData[i];
+                for (var j = 0; j < (g.outbounds || []).length; j++) {
+                    var ob = g.outbounds[j];
+                    if (ob.tag && ob.tag !== 'direct' && ob.tag !== 'block') {
                         servers++;
-                        protocols[ob.protocol] = (protocols[ob.protocol] || 0) + 1;
+                        var proto = ob.protocol || 'unknown';
+                        protocols[proto] = (protocols[proto] || 0) + 1;
                     }
                 }
             }
-            let protoStr = Object.entries(protocols).map(([k, v]) => `   • ${k}: ${v}`).join('\n') || '   • нет';
-            text.textContent =
-                `📊 СТАТИСТИКА\n\n📁 Групп: ${groups}\n🌐 Серверов: ${servers}\n\n📝 Протоколы:\n${protoStr}`;
+            var protoStr = '';
+            for (var p in protocols) {
+                protoStr += '   • ' + p + ': ' + protocols[p] + '\n';
+            }
+            if (!protoStr) protoStr = '   • нет';
+            text.textContent = '📊 СТАТИСТИКА\n\n📁 Групп: ' + groups + '\n🌐 Серверов: ' + servers +
+                '\n\n📝 Протоколы:\n' + protoStr;
             modal.classList.remove('hidden');
-        };
+        }
 
-        window.closeStats = function() {
+        function closeStats() {
             document.getElementById('statsModal').classList.add('hidden');
-        };
+        }
 
         // ---- АВТОКОНВЕРТАЦИЯ ----
         inputArea.addEventListener('input', function() {
             updateLinkCount();
-            if (autoConvert.checked) window.doConvert();
+            if (autoConvert.checked) doConvert();
         });
 
         inputArea.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'Enter') { e.preventDefault();
-                window.doConvert(); }
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                doConvert();
+            }
         });
 
         // ---- ОСНОВНАЯ КОНВЕРТАЦИЯ ----
-        window.doConvert = function() {
-            const text = inputArea.value.trim();
-            log(`Конвертация: ${text.length} символов`, 'info');
+        function doConvert() {
+            var text = inputArea.value.trim();
+            log('Конвертация: ' + text.length + ' символов', 'info');
 
             if (!text) {
                 outputArea.value = '';
@@ -523,74 +533,87 @@
                 return;
             }
 
-            const lines = text.split('\n');
-            log(`Всего строк: ${lines.length}`, 'info');
+            var lines = text.split('\n');
+            log('Всего строк: ' + lines.length, 'info');
 
-            const groups = [];
-            let currentGroup = null;
-            let currentServers = [];
+            var groups = [];
+            var currentGroup = null;
+            var currentServers = [];
 
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
                 if (!line) continue;
 
-                // Проверяем группу (флаг + текст)
-                const isGroup = /^[🇦-🇿]/.test(line) && !line.startsWith('vless://') && !line.startsWith('hysteria2://') &&
-                    !line.startsWith('trojan://') && !line.startsWith('vmess://') && !line.startsWith('ss://') && !line
-                    .startsWith('{');
+                // Проверяем группу (флаг + текст) — БЕЗ РЕГУЛЯРКИ С РАНЖЕМ
+                var isGroup = false;
+                var firstChar = line.charAt(0);
+                // Проверяем, что первый символ — эмодзи флага (диапазон Unicode)
+                var flagCode = firstChar.charCodeAt(0);
+                if (flagCode >= 127462 && flagCode <= 127487) { // 🇦-🇿
+                    isGroup = true;
+                }
 
-                const isVless = line.startsWith('vless://');
-                const isHysteria = line.startsWith('hysteria2://');
-                const isTrojan = line.startsWith('trojan://');
-                const isVmess = line.startsWith('vmess://');
-                const isSs = line.startsWith('ss://');
-                const isJson = line.startsWith('{');
+                // Дополнительная проверка: строка начинается с флага и не является ссылкой
+                if (isGroup && !line.startsWith('vless://') && !line.startsWith('hysteria2://') &&
+                    !line.startsWith('trojan://') && !line.startsWith('vmess://') && !line.startsWith('ss://') &&
+                    !line.startsWith('{')) {
+                    isGroup = true;
+                } else {
+                    isGroup = false;
+                }
+
+                var isVless = line.startsWith('vless://');
+                var isHysteria = line.startsWith('hysteria2://');
+                var isTrojan = line.startsWith('trojan://');
+                var isVmess = line.startsWith('vmess://');
+                var isSs = line.startsWith('ss://');
+                var isJson = line.startsWith('{');
 
                 if (isGroup) {
-                    log(`Найдена группа: "${line}"`, 'info');
+                    log('Найдена группа: "' + line + '"', 'info');
                     if (currentGroup && currentServers.length > 0) {
                         groups.push({ name: currentGroup, servers: currentServers });
-                        log(`Добавлена группа "${currentGroup}" с ${currentServers.length} серверами`, 'ok');
+                        log('Добавлена группа "' + currentGroup + '" с ' + currentServers.length + ' серверами', 'ok');
                     }
                     currentGroup = line;
                     currentServers = [];
                 } else if (isVless) {
                     currentServers.push({ type: 'vless', data: line });
-                    log(`Найден VLESS сервер`, 'info');
+                    log('Найден VLESS сервер', 'info');
                 } else if (isHysteria) {
                     currentServers.push({ type: 'hysteria2', data: line });
-                    log(`Найден Hysteria2 сервер`, 'info');
+                    log('Найден Hysteria2 сервер', 'info');
                 } else if (isTrojan) {
                     currentServers.push({ type: 'trojan', data: line });
-                    log(`Найден Trojan сервер`, 'info');
+                    log('Найден Trojan сервер', 'info');
                 } else if (isVmess) {
                     currentServers.push({ type: 'vmess', data: line });
-                    log(`Найден VMESS сервер`, 'info');
+                    log('Найден VMESS сервер', 'info');
                 } else if (isSs) {
                     currentServers.push({ type: 'ss', data: line });
-                    log(`Найден Shadowsocks сервер`, 'info');
+                    log('Найден Shadowsocks сервер', 'info');
                 } else if (isJson) {
                     try {
-                        const parsed = JSON.parse(line);
+                        var parsed = JSON.parse(line);
                         currentServers.push({ type: 'json', data: parsed });
-                        log(`Найден JSON конфиг`, 'info');
+                        log('Найден JSON конфиг', 'info');
                     } catch (e) {
-                        log(`Ошибка парсинга JSON: ${e.message}`, 'error');
+                        log('Ошибка парсинга JSON: ' + e.message, 'error');
                     }
                 } else if (!currentGroup && (isVless || isHysteria || isTrojan || isVmess || isSs)) {
                     currentGroup = 'Без названия';
-                    const type = line.split(':')[0];
+                    var type = line.split(':')[0];
                     currentServers.push({ type: type, data: line });
-                    log(`Создана группа "Без названия"`, 'warning');
+                    log('Создана группа "Без названия"', 'warning');
                 }
             }
 
             if (currentGroup && currentServers.length > 0) {
                 groups.push({ name: currentGroup, servers: currentServers });
-                log(`Добавлена последняя группа "${currentGroup}" с ${currentServers.length} серверами`, 'ok');
+                log('Добавлена последняя группа "' + currentGroup + '" с ' + currentServers.length + ' серверами', 'ok');
             }
 
-            log(`Всего групп: ${groups.length}`, 'info');
+            log('Всего групп: ' + groups.length, 'info');
 
             if (groups.length === 0) {
                 outputArea.value = '';
@@ -604,15 +627,17 @@
             }
 
             // КОНВЕРТАЦИЯ
-            const result = [];
-            let proxyCounter = 1;
+            var result = [];
+            var proxyCounter = 1;
 
-            for (const g of groups) {
-                const outbounds = [];
-                const usedTags = new Set();
+            for (var gi = 0; gi < groups.length; gi++) {
+                var g = groups[gi];
+                var outbounds = [];
+                var usedTags = {};
 
-                for (const entry of g.servers) {
-                    let ob = null;
+                for (var ei = 0; ei < g.servers.length; ei++) {
+                    var entry = g.servers[ei];
+                    var ob = null;
                     try {
                         if (entry.type === 'vless') ob = parseVless(entry.data);
                         else if (entry.type === 'hysteria2') ob = parseHysteria2(entry.data);
@@ -621,26 +646,27 @@
                         else if (entry.type === 'ss') ob = parseShadowsocks(entry.data);
                         else if (entry.type === 'json') ob = entry.data;
                     } catch (e) {
-                        log(`Ошибка парсинга: ${e.message}`, 'error');
+                        log('Ошибка парсинга: ' + e.message, 'error');
                     }
 
                     if (ob) {
-                        let tag = ob.tag || 'proxy';
-                        if (tag === 'proxy' || usedTags.has(tag)) {
-                            tag = `proxy-${proxyCounter}`;
+                        var tag = ob.tag || 'proxy';
+                        if (tag === 'proxy' || usedTags[tag]) {
+                            tag = 'proxy-' + proxyCounter;
                             proxyCounter++;
                         }
                         ob.tag = tag;
-                        usedTags.add(tag);
+                        usedTags[tag] = true;
                         outbounds.push(ob);
-                        log(`Добавлен сервер: ${tag}`, 'ok');
+                        log('Добавлен сервер: ' + tag, 'ok');
                     } else {
-                        log(`Не удалось распарсить: ${entry.data?.substring(0, 40)}...`, 'warning');
+                        var shortData = entry.data ? entry.data.substring(0, 40) : '';
+                        log('Не удалось распарсить: ' + shortData + '...', 'warning');
                     }
                 }
 
                 if (outbounds.length === 0) {
-                    log(`Группа "${g.name}" пропущена (нет серверов)`, 'warning');
+                    log('Группа "' + g.name + '" пропущена (нет серверов)', 'warning');
                     continue;
                 }
 
@@ -674,18 +700,28 @@
                 });
             }
 
-            const json = prettyJson.checked ? JSON.stringify(result, null, 2) : JSON.stringify(result);
+            var json = prettyJson.checked ? JSON.stringify(result, null, 2) : JSON.stringify(result);
             outputArea.value = json;
             convertedData = result;
             outputSize.textContent = json.length;
 
-            const total = result.reduce((acc, g) => acc + (g.outbounds?.filter(o => !['direct', 'block'].includes(o.tag))
-                .length || 0), 0);
-            statsLabel.textContent = `📊 ${result.length} групп, ${total} серверов`;
-            serverCount.textContent = `🌐 ${total} серверов`;
-            inputStatus.innerHTML = `<span style="color:#3fb950;">✅ Успешно! ${result.length} групп, ${total} серверов</span>`;
-            log(`✅ ГОТОВО! ${result.length} групп, ${total} серверов`, 'success');
-        };
+            var total = 0;
+            for (var ri = 0; ri < result.length; ri++) {
+                var obList = result[ri].outbounds || [];
+                for (var oi = 0; oi < obList.length; oi++) {
+                    var tag = obList[oi].tag;
+                    if (tag !== 'direct' && tag !== 'block') {
+                        total++;
+                    }
+                }
+            }
+
+            statsLabel.textContent = '📊 ' + result.length + ' групп, ' + total + ' серверов';
+            serverCount.textContent = '🌐 ' + total + ' серверов';
+            inputStatus.innerHTML = '<span style="color:#3fb950;">✅ Успешно! ' + result.length + ' групп, ' + total +
+                ' серверов</span>';
+            log('✅ ГОТОВО! ' + result.length + ' групп, ' + total + ' серверов', 'success');
+        }
 
         // ======================================================================
         //  ПАРСЕРЫ
@@ -693,62 +729,74 @@
 
         function parseVless(url) {
             url = url.replace('vless://', '');
-            let tag = '';
-            if (url.includes('#')) {
-                const parts = url.split('#');
+            var tag = '';
+            if (url.indexOf('#') !== -1) {
+                var parts = url.split('#');
                 url = parts[0];
                 tag = decodeURIComponent(parts[1] || '').trim();
             }
             if (!tag) tag = 'proxy';
-            if (!url.includes('@')) return null;
-            const [uid, rest] = url.split('@', 2);
-            let addrPort = rest,
-                params = '';
-            if (rest.includes('?')) {
-                const parts = rest.split('?');
-                addrPort = parts[0];
-                params = parts[1] || '';
+            if (url.indexOf('@') === -1) return null;
+            var split1 = url.split('@');
+            var uid = split1[0];
+            var rest = split1[1];
+            var addrPort = rest;
+            var params = '';
+            if (rest.indexOf('?') !== -1) {
+                var parts2 = rest.split('?');
+                addrPort = parts2[0];
+                params = parts2[1] || '';
             }
-            if (!addrPort.includes(':')) return null;
-            const [address, port] = addrPort.split(':', 2);
-            const param = {};
+            if (addrPort.indexOf(':') === -1) return null;
+            var addrParts = addrPort.split(':');
+            var address = addrParts[0];
+            var port = addrParts[1];
+            var param = {};
             if (params) {
-                for (const p of params.split('&')) {
-                    if (p.includes('=')) {
-                        const [k, v] = p.split('=', 2);
-                        param[k] = (k === 'path' || k === 'host') ? decodeURIComponent(v) : v;
+                var paramParts = params.split('&');
+                for (var i = 0; i < paramParts.length; i++) {
+                    var p = paramParts[i];
+                    if (p.indexOf('=') !== -1) {
+                        var kv = p.split('=');
+                        var k = kv[0];
+                        var v = kv[1];
+                        if (k === 'path' || k === 'host') {
+                            v = decodeURIComponent(v);
+                        }
+                        param[k] = v;
                     }
                 }
             }
-            const network = param.type || 'tcp';
-            const security = param.security || 'none';
-            const outbound = {
+            var network = param.type || 'tcp';
+            var security = param.security || 'none';
+            var outbound = {
                 tag: tag,
                 protocol: 'vless',
                 settings: {
                     vnext: [{
                         address: address,
                         port: parseInt(port),
-                        users: [{ id: uid, encryption: param.encryption || 'none', flow: param.flow || '', level: 0 }]
+                        users: [{ id: uid, encryption: param.encryption || 'none', flow: param.flow || '',
+                            level: 0 }]
                     }]
                 }
             };
-            const stream = { network, security };
+            var stream = { network: network, security: security };
             if (network === 'ws') {
-                const ws = {};
+                var ws = {};
                 if (param.path) ws.path = param.path;
                 if (param.host) ws.headers = { Host: param.host };
                 else if (param.sni) ws.headers = { Host: param.sni };
                 stream.wsSettings = ws;
             }
             if (security === 'tls') {
-                const tls = {};
+                var tls = {};
                 if (param.sni) tls.serverName = param.sni;
                 else if (param.host) tls.serverName = param.host;
                 tls.fingerprint = param.fp || 'chrome';
                 stream.tlsSettings = tls;
             } else if (security === 'reality') {
-                const reality = {};
+                var reality = {};
                 if (param.sni) reality.serverName = param.sni;
                 if (param.fp) reality.fingerprint = param.fp;
                 if (param.pbk) reality.publicKey = param.pbk;
@@ -756,62 +804,72 @@
                 stream.realitySettings = reality;
             }
             if (network === 'xhttp') {
-                const xhttp = {};
+                var xhttp = {};
                 if (param.path) xhttp.path = param.path;
                 if (param.mode) xhttp.mode = param.mode;
                 if (param.host) xhttp.host = param.host;
                 if (param.extra) { try { xhttp.extra = JSON.parse(param.extra); } catch (e) {} }
                 stream.xhttpSettings = xhttp;
             } else if (network === 'grpc') {
-                const grpc = {};
+                var grpc = {};
                 if (param.serviceName) grpc.serviceName = param.serviceName;
                 if (param.mode === 'gun') grpc.multiMode = true;
                 stream.grpcSettings = grpc;
             }
-            if (Object.keys(stream).length > 1) outbound.streamSettings = stream;
+            var streamKeys = Object.keys(stream);
+            if (streamKeys.length > 1) outbound.streamSettings = stream;
             return outbound;
         }
 
         function parseHysteria2(url) {
             url = url.replace('hysteria2://', '');
-            let tag = '';
-            if (url.includes('#')) {
-                const parts = url.split('#');
+            var tag = '';
+            if (url.indexOf('#') !== -1) {
+                var parts = url.split('#');
                 url = parts[0];
                 tag = decodeURIComponent(parts[1] || '').trim();
             }
             if (!tag) tag = 'proxy';
-            if (!url.includes('@')) return null;
-            const [auth, rest] = url.split('@', 2);
-            let addrPort = rest,
-                params = '';
-            if (rest.includes('?')) {
-                const parts = rest.split('?');
-                addrPort = parts[0];
-                params = parts[1] || '';
+            if (url.indexOf('@') === -1) return null;
+            var split1 = url.split('@');
+            var auth = split1[0];
+            var rest = split1[1];
+            var addrPort = rest;
+            var params = '';
+            if (rest.indexOf('?') !== -1) {
+                var parts2 = rest.split('?');
+                addrPort = parts2[0];
+                params = parts2[1] || '';
             }
-            if (!addrPort.includes(':')) return null;
-            const [address, port] = addrPort.split(':', 2);
-            const param = {};
+            if (addrPort.indexOf(':') === -1) return null;
+            var addrParts = addrPort.split(':');
+            var address = addrParts[0];
+            var port = addrParts[1];
+            var param = {};
             if (params) {
-                for (const p of params.split('&')) {
-                    if (p.includes('=')) {
-                        const [k, v] = p.split('=', 2);
-                        param[k] = (k === 'sni') ? decodeURIComponent(v) : v;
+                var paramParts = params.split('&');
+                for (var i = 0; i < paramParts.length; i++) {
+                    var p = paramParts[i];
+                    if (p.indexOf('=') !== -1) {
+                        var kv = p.split('=');
+                        var k = kv[0];
+                        var v = kv[1];
+                        if (k === 'sni') v = decodeURIComponent(v);
+                        param[k] = v;
                     }
                 }
             }
-            const outbound = {
+            var outbound = {
                 tag: tag,
                 protocol: 'hysteria',
-                settings: { address, port: parseInt(port), version: 2 },
+                settings: { address: address, port: parseInt(port), version: 2 },
                 streamSettings: {
                     network: 'hysteria',
                     security: 'tls',
                     hysteriaSettings: { version: 2, auth: auth }
                 }
             };
-            const tls = {};
+            var tls = {};
             if (param.sni) tls.serverName = param.sni;
             if (param.fp) tls.fingerprint = param.fp;
             if (Object.keys(tls).length) outbound.streamSettings.tlsSettings = tls;
@@ -820,50 +878,59 @@
 
         function parseTrojan(url) {
             url = url.replace('trojan://', '');
-            let tag = '';
-            if (url.includes('#')) {
-                const parts = url.split('#');
+            var tag = '';
+            if (url.indexOf('#') !== -1) {
+                var parts = url.split('#');
                 url = parts[0];
                 tag = decodeURIComponent(parts[1] || '').trim();
             }
             if (!tag) tag = 'proxy';
-            if (!url.includes('@')) return null;
-            const [password, rest] = url.split('@', 2);
-            let addrPort = rest,
-                params = '';
-            if (rest.includes('?')) {
-                const parts = rest.split('?');
-                addrPort = parts[0];
-                params = parts[1] || '';
+            if (url.indexOf('@') === -1) return null;
+            var split1 = url.split('@');
+            var password = split1[0];
+            var rest = split1[1];
+            var addrPort = rest;
+            var params = '';
+            if (rest.indexOf('?') !== -1) {
+                var parts2 = rest.split('?');
+                addrPort = parts2[0];
+                params = parts2[1] || '';
             }
-            if (!addrPort.includes(':')) return null;
-            const [address, port] = addrPort.split(':', 2);
-            const param = {};
+            if (addrPort.indexOf(':') === -1) return null;
+            var addrParts = addrPort.split(':');
+            var address = addrParts[0];
+            var port = addrParts[1];
+            var param = {};
             if (params) {
-                for (const p of params.split('&')) {
-                    if (p.includes('=')) {
-                        const [k, v] = p.split('=', 2);
-                        param[k] = (k === 'path' || k === 'host') ? decodeURIComponent(v) : v;
+                var paramParts = params.split('&');
+                for (var i = 0; i < paramParts.length; i++) {
+                    var p = paramParts[i];
+                    if (p.indexOf('=') !== -1) {
+                        var kv = p.split('=');
+                        var k = kv[0];
+                        var v = kv[1];
+                        if (k === 'path' || k === 'host') v = decodeURIComponent(v);
+                        param[k] = v;
                     }
                 }
             }
-            const network = param.type || 'tcp';
-            const security = param.security || 'tls';
-            const outbound = {
+            var network = param.type || 'tcp';
+            var security = param.security || 'tls';
+            var outbound = {
                 tag: tag,
                 protocol: 'trojan',
-                settings: { servers: [{ address, port: parseInt(port), password }] }
+                settings: { servers: [{ address: address, port: parseInt(port), password: password }] }
             };
-            const stream = { network, security };
+            var stream = { network: network, security: security };
             if (security === 'tls') {
-                const tls = {};
+                var tls = {};
                 if (param.sni) tls.serverName = param.sni;
                 else if (param.host) tls.serverName = param.host;
                 if (param.fp) tls.fingerprint = param.fp;
                 stream.tlsSettings = tls;
             }
             if (network === 'ws') {
-                const ws = {};
+                var ws = {};
                 if (param.path) ws.path = param.path;
                 if (param.host) ws.headers = { Host: param.host };
                 stream.wsSettings = ws;
@@ -875,32 +942,33 @@
         function parseVmess(url) {
             url = url.replace('vmess://', '');
             try {
-                const decoded = atob(url);
-                const config = JSON.parse(decoded);
-                let uid = config.id || '';
+                var decoded = atob(url);
+                var config = JSON.parse(decoded);
+                var uid = config.id || '';
                 if (uid.length > 36) uid = uid.slice(0, 36);
-                let tag = config.ps || 'proxy';
+                var tag = config.ps || 'proxy';
                 try { tag = decodeURIComponent(tag); } catch (e) {}
-                const outbound = {
+                var outbound = {
                     tag: tag,
                     protocol: 'vmess',
                     settings: {
                         vnext: [{
                             address: config.add || '',
                             port: parseInt(config.port || 0),
-                            users: [{ id: uid, alterId: parseInt(config.aid || 0), security: config.scy || 'auto' }]
+                            users: [{ id: uid, alterId: parseInt(config.aid || 0), security: config.scy ||
+                                    'auto' }]
                         }]
                     },
                     streamSettings: { network: config.net || 'tcp', security: config.tls || 'none' }
                 };
                 if ((config.net || '') === 'ws') {
-                    const ws = {};
+                    var ws = {};
                     if (config.path) ws.path = config.path;
                     if (config.host) ws.headers = { Host: config.host };
                     outbound.streamSettings.wsSettings = ws;
                 }
                 if ((config.tls || '') === 'tls') {
-                    const tls = {};
+                    var tls = {};
                     if (config.sni) tls.serverName = config.sni;
                     if (config.fp) tls.fingerprint = config.fp;
                     outbound.streamSettings.tlsSettings = tls;
@@ -911,30 +979,35 @@
 
         function parseShadowsocks(url) {
             url = url.replace('ss://', '');
-            let tag = '';
-            if (url.includes('#')) {
-                const parts = url.split('#');
+            var tag = '';
+            if (url.indexOf('#') !== -1) {
+                var parts = url.split('#');
                 url = parts[0];
                 tag = decodeURIComponent(parts[1] || '').trim();
             }
             if (!tag) tag = 'proxy';
-            if (url.includes('@')) {
-                const [methodPassword, rest] = url.split('@', 2);
-                let method = 'aes-256-gcm',
-                    password = methodPassword;
-                if (methodPassword.includes(':')) {
-                    const parts = methodPassword.split(':');
-                    method = parts[0];
-                    password = parts[1] || '';
+            if (url.indexOf('@') !== -1) {
+                var split1 = url.split('@');
+                var methodPassword = split1[0];
+                var rest = split1[1];
+                var method = 'aes-256-gcm';
+                var password = methodPassword;
+                if (methodPassword.indexOf(':') !== -1) {
+                    var mpParts = methodPassword.split(':');
+                    method = mpParts[0];
+                    password = mpParts[1] || '';
                 }
-                let addrPort = rest;
-                if (rest.includes('?')) addrPort = rest.split('?')[0];
-                if (!addrPort.includes(':')) return null;
-                const [address, port] = addrPort.split(':', 2);
+                var addrPort = rest;
+                if (rest.indexOf('?') !== -1) addrPort = rest.split('?')[0];
+                if (addrPort.indexOf(':') === -1) return null;
+                var addrParts = addrPort.split(':');
+                var address = addrParts[0];
+                var port = addrParts[1];
                 return {
                     tag: tag,
                     protocol: 'shadowsocks',
-                    settings: { servers: [{ address, port: parseInt(port), method, password }] }
+                    settings: { servers: [{ address: address, port: parseInt(port), method: method,
+                            password: password }] }
                 };
             }
             return null;
@@ -943,10 +1016,9 @@
         // ---- ПЕРВЫЙ ЗАПУСК ----
         document.addEventListener('DOMContentLoaded', function() {
             log('🚀 Приложение загружено', 'info');
-            // Если есть текст - конвертируем
             if (inputArea.value.trim()) {
                 log('Есть текст в поле ввода, конвертируем...', 'info');
-                window.doConvert();
+                doConvert();
             }
         });
     </script>
