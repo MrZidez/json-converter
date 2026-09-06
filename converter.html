@@ -295,6 +295,7 @@
             border: 1px solid #21262d;
             font-size: 13px;
             color: #8b949e;
+            min-height: 40px;
         }
 
         .status-bar .success {
@@ -305,6 +306,33 @@
         }
         .status-bar .info {
             color: #58a6ff;
+        }
+
+        .debug-console {
+            margin-top: 15px;
+            background: #0d1117;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            padding: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            color: #8b949e;
+            display: none;
+        }
+
+        .debug-console .log-error {
+            color: #f85149;
+        }
+        .debug-console .log-success {
+            color: #3fb950;
+        }
+        .debug-console .log-info {
+            color: #58a6ff;
+        }
+        .debug-console .log-warning {
+            color: #d29922;
         }
     </style>
 </head>
@@ -333,6 +361,7 @@
                     <button class="btn primary" onclick="pasteFromClipboard()">📋 Вставить</button>
                     <button class="btn success" onclick="convert()">🔄 Конвертировать</button>
                     <button class="btn danger" onclick="clearInput()">🗑️ Очистить</button>
+                    <button class="btn orange" onclick="toggleDebug()">🐛 Отладка</button>
                 </div>
                 <div class="settings">
                     <label>
@@ -370,6 +399,12 @@
 
         </div>
 
+        <!-- Консоль отладки -->
+        <div class="debug-console" id="debugConsole">
+            <div><span class="log-info">🐛 Консоль отладки</span></div>
+            <div id="debugLog"></div>
+        </div>
+
         <!-- Модалка статистики -->
         <div id="statsModal" class="modal hidden">
             <div class="modal-content">
@@ -390,6 +425,33 @@
         //  ВСЯ ЛОГИКА КОНВЕРТАЦИИ НА КЛИЕНТЕ
         // ============================================================
 
+        // ===== ОТЛАДКА =====
+        const debugLog = document.getElementById('debugLog');
+        let debugVisible = false;
+
+        function log(msg, type = 'info') {
+            const types = {
+                'error': 'log-error',
+                'success': 'log-success',
+                'info': 'log-info',
+                'warning': 'log-warning'
+            };
+            const cls = types[type] || 'log-info';
+            const time = new Date().toLocaleTimeString();
+            debugLog.innerHTML += `<div><span class="${cls}">[${time}] ${msg}</span></div>`;
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${msg}`);
+        }
+
+        function toggleDebug() {
+            const console = document.getElementById('debugConsole');
+            debugVisible = !debugVisible;
+            console.style.display = debugVisible ? 'block' : 'none';
+            if (debugVisible) {
+                log('🐛 Отладка включена');
+            }
+        }
+
         // ===== СОСТОЯНИЕ =====
         let lastInput = '';
         let convertedData = null;
@@ -403,6 +465,7 @@
         const serverCount = document.getElementById('serverCount');
         const autoConvert = document.getElementById('autoConvert');
         const prettyJson = document.getElementById('prettyJson');
+        const inputStatus = document.getElementById('inputStatus');
 
         // ===== СОБЫТИЯ =====
         inputArea.addEventListener('input', () => {
@@ -426,25 +489,32 @@
             const lines = text.split('\n').filter(l => l.trim());
             const links = lines.filter(l => /^(vless:\/\/|hysteria2:\/\/|trojan:\/\/|vmess:\/\/|ss:\/\/)/.test(l.trim()));
             linkCount.textContent = `${lines.length} строк, ${links.length} ссылок`;
+            log(`Обновлен счетчик: ${lines.length} строк, ${links.length} ссылок`, 'info');
         }
 
         function pasteFromClipboard() {
+            log('Попытка вставки из буфера...', 'info');
             navigator.clipboard.readText().then(text => {
+                log(`Вставлено ${text.length} символов`, 'success');
                 inputArea.value = text;
                 updateLinkCount();
                 if (autoConvert.checked) convert();
-            }).catch(() => {
+            }).catch((err) => {
+                log(`Ошибка вставки: ${err.message}`, 'error');
                 alert('Не удалось получить данные из буфера обмена');
             });
         }
 
         function clearInput() {
+            log('Очистка ввода', 'warning');
             inputArea.value = '';
             updateLinkCount();
             lastInput = '';
+            inputStatus.innerHTML = '<span>💡 Ввод очищен</span>';
         }
 
         function clearOutput() {
+            log('Очистка вывода', 'warning');
             outputArea.value = '';
             statsLabel.textContent = 'Ожидание…';
             outputSize.textContent = '0';
@@ -455,23 +525,30 @@
         function copyJson() {
             const text = outputArea.value;
             if (!text) {
+                log('Нет данных для копирования', 'warning');
                 alert('Нет данных для копирования');
                 return;
             }
+            log(`Копирование ${text.length} символов...`, 'info');
             navigator.clipboard.writeText(text).then(() => {
+                log('JSON скопирован!', 'success');
                 const btn = event?.target || document.querySelector('.btn.success');
                 const orig = btn.textContent;
                 btn.textContent = '✅ Скопировано!';
                 setTimeout(() => btn.textContent = orig, 1500);
+            }).catch(err => {
+                log(`Ошибка копирования: ${err.message}`, 'error');
             });
         }
 
         function saveJson() {
             const text = outputArea.value;
             if (!text) {
+                log('Нет данных для сохранения', 'warning');
                 alert('Нет данных для сохранения');
                 return;
             }
+            log(`Сохранение ${text.length} символов...`, 'info');
             const blob = new Blob([text], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -479,10 +556,12 @@
             a.download = `happ_config_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
+            log('Файл сохранен', 'success');
         }
 
         function showStats() {
             if (!convertedData) {
+                log('Нет данных для статистики', 'warning');
                 alert('Сначала сконвертируйте данные');
                 return;
             }
@@ -518,6 +597,7 @@
         💡 Размер: ${outputArea.value.length} символов
             `.trim();
             modal.classList.remove('hidden');
+            log('Статистика показана', 'info');
         }
 
         function closeStats() {
@@ -527,6 +607,7 @@
         // ===== ОСНОВНАЯ ЛОГИКА КОНВЕРТАЦИИ =====
 
         function parseVless(url) {
+            log(`Парсинг VLESS: ${url.substring(0, 60)}...`, 'info');
             url = url.replace('vless://', '');
             let tag = '';
             if (url.includes('#')) {
@@ -536,7 +617,10 @@
             }
             if (!tag) tag = 'proxy';
 
-            if (!url.includes('@')) return null;
+            if (!url.includes('@')) {
+                log('Ошибка: нет @ в VLESS ссылке', 'error');
+                return null;
+            }
             const [uid, rest] = url.split('@', 2);
             let addrPort = rest,
                 params = '';
@@ -545,7 +629,10 @@
                 addrPort = parts[0];
                 params = parts[1] || '';
             }
-            if (!addrPort.includes(':')) return null;
+            if (!addrPort.includes(':')) {
+                log('Ошибка: нет : в адресе', 'error');
+                return null;
+            }
             const [address, port] = addrPort.split(':', 2);
 
             const param = {};
@@ -560,6 +647,8 @@
 
             const network = param.type || 'tcp';
             const security = param.security || 'none';
+
+            log(`VLESS: ${address}:${port} | network: ${network} | security: ${security} | tag: ${tag}`, 'success');
 
             const outbound = {
                 tag: tag,
@@ -609,7 +698,7 @@
                 if (param.mode) xhttp.mode = param.mode;
                 if (param.host) xhttp.host = param.host;
                 if (param.extra) {
-                    try { xhttp.extra = JSON.parse(param.extra); } catch (e) {}
+                    try { xhttp.extra = JSON.parse(param.extra); } catch (e) { log(`Ошибка парсинга extra: ${e.message}`, 'warning'); }
                 }
                 stream.xhttpSettings = xhttp;
             } else if (network === 'grpc') {
@@ -627,6 +716,7 @@
         }
 
         function parseHysteria2(url) {
+            log(`Парсинг Hysteria2: ${url.substring(0, 60)}...`, 'info');
             url = url.replace('hysteria2://', '');
             let tag = '';
             if (url.includes('#')) {
@@ -658,6 +748,8 @@
                 }
             }
 
+            log(`Hysteria2: ${address}:${port} | tag: ${tag}`, 'success');
+
             const outbound = {
                 tag: tag,
                 protocol: 'hysteria',
@@ -680,6 +772,7 @@
         }
 
         function parseTrojan(url) {
+            log(`Парсинг Trojan: ${url.substring(0, 60)}...`, 'info');
             url = url.replace('trojan://', '');
             let tag = '';
             if (url.includes('#')) {
@@ -710,6 +803,8 @@
                     }
                 }
             }
+
+            log(`Trojan: ${address}:${port} | tag: ${tag}`, 'success');
 
             const network = param.type || 'tcp';
             const security = param.security || 'tls';
@@ -747,6 +842,7 @@
         }
 
         function parseVmess(url) {
+            log(`Парсинг VMESS...`, 'info');
             url = url.replace('vmess://', '');
             try {
                 const decoded = atob(url);
@@ -755,6 +851,8 @@
                 if (uid.length > 36) uid = uid.slice(0, 36);
                 let tag = config.ps || 'proxy';
                 try { tag = decodeURIComponent(tag); } catch (e) {}
+
+                log(`VMESS: ${config.add || ''}:${config.port || 0} | tag: ${tag}`, 'success');
 
                 const outbound = {
                     tag: tag,
@@ -792,11 +890,13 @@
 
                 return outbound;
             } catch (e) {
+                log(`Ошибка парсинга VMESS: ${e.message}`, 'error');
                 return null;
             }
         }
 
         function parseShadowsocks(url) {
+            log(`Парсинг Shadowsocks...`, 'info');
             url = url.replace('ss://', '');
             let tag = '';
             if (url.includes('#')) {
@@ -822,6 +922,8 @@
                 if (!addrPort.includes(':')) return null;
                 const [address, port] = addrPort.split(':', 2);
 
+                log(`Shadowsocks: ${address}:${port} | method: ${method}`, 'success');
+
                 return {
                     tag: tag,
                     protocol: 'shadowsocks',
@@ -835,6 +937,7 @@
                     }
                 };
             }
+            log('Ошибка парсинга Shadowsocks: нет @', 'error');
             return null;
         }
 
@@ -849,14 +952,16 @@
                 if (type === 'ss') return parseShadowsocks(url);
                 if (type === 'json') return entry.data;
             } catch (e) {
-                console.warn('Ошибка парсинга:', e);
+                log(`Ошибка парсинга ${type}: ${e.message}`, 'error');
             }
             return null;
         }
 
         function convertGroups(groups) {
+            log(`Начинаем конвертацию ${groups.length} групп...`, 'info');
             const result = [];
             for (const g of groups) {
+                log(`Обработка группы: ${g.name} (${g.servers.length} серверов)`, 'info');
                 const outbounds = [];
                 let counter = 1;
                 const usedTags = new Set();
@@ -864,7 +969,6 @@
                 for (const entry of g.servers || []) {
                     const ob = parseLink(entry);
                     if (ob) {
-                        // Убеждаемся, что тег уникальный
                         let tag = ob.tag || 'proxy';
                         if (tag === 'proxy' || usedTags.has(tag)) {
                             tag = `proxy-${counter}`;
@@ -873,10 +977,16 @@
                         ob.tag = tag;
                         usedTags.add(tag);
                         outbounds.push(ob);
+                        log(`Добавлен сервер: ${tag} (${ob.protocol})`, 'success');
+                    } else {
+                        log(`Не удалось распарсить: ${entry.data?.substring(0, 50)}...`, 'warning');
                     }
                 }
 
-                if (!outbounds.length) continue;
+                if (!outbounds.length) {
+                    log(`Группа ${g.name} пропущена (нет серверов)`, 'warning');
+                    continue;
+                }
 
                 outbounds.push({ tag: 'direct', protocol: 'freedom' });
                 outbounds.push({ tag: 'block', protocol: 'blackhole' });
@@ -910,28 +1020,37 @@
                     outbounds: outbounds
                 });
             }
+            log(`Конвертация завершена. Получено ${result.length} групп`, 'success');
             return result;
         }
 
         function convert() {
             const text = inputArea.value.trim();
+            log(`Начинаем конвертацию. Длина текста: ${text.length} символов`, 'info');
+
             if (!text) {
+                log('Текст пуст', 'warning');
                 outputArea.value = '';
                 statsLabel.textContent = 'Нет данных';
                 outputSize.textContent = '0';
                 serverCount.textContent = '🌐 0 серверов';
                 convertedData = null;
+                inputStatus.innerHTML = '<span>⚠️ Нет данных для конвертации</span>';
                 return;
             }
 
             const lines = text.split('\n');
+            log(`Разбито на ${lines.length} строк`, 'info');
+
             const groups = [];
             let currentGroup = null;
             let currentServers = [];
 
             const groupRegex = /^[🇦-🇿]+\s*.*/;
+            let lineNumber = 0;
 
             for (const raw of lines) {
+                lineNumber++;
                 const line = raw.trim();
                 if (!line) continue;
 
@@ -939,20 +1058,27 @@
                 const isJson = line.startsWith('{');
 
                 if (groupRegex.test(line) && !isLink && !isJson) {
+                    log(`Строка ${lineNumber}: Найдена группа "${line}"`, 'info');
                     if (currentGroup && currentServers.length) {
                         groups.push({ name: currentGroup, servers: currentServers });
+                        log(`Добавлена группа "${currentGroup}" с ${currentServers.length} серверами`, 'success');
                     }
                     currentGroup = line;
                     currentServers = [];
                 } else if (isLink) {
                     const type = line.split(':')[0];
+                    log(`Строка ${lineNumber}: Найдена ссылка ${type}`, 'info');
                     currentServers.push({ type: type, data: line });
                 } else if (isJson) {
+                    log(`Строка ${lineNumber}: Найден JSON`, 'info');
                     try {
                         const parsed = JSON.parse(line);
                         currentServers.push({ type: 'json', data: parsed });
-                    } catch (e) {}
+                    } catch (e) {
+                        log(`Ошибка парсинга JSON: ${e.message}`, 'error');
+                    }
                 } else if (!currentGroup && isLink) {
+                    log(`Строка ${lineNumber}: Создана группа "Без названия"`, 'warning');
                     currentGroup = 'Без названия';
                     const type = line.split(':')[0];
                     currentServers.push({ type: type, data: line });
@@ -961,39 +1087,57 @@
 
             if (currentGroup && currentServers.length) {
                 groups.push({ name: currentGroup, servers: currentServers });
+                log(`Добавлена последняя группа "${currentGroup}" с ${currentServers.length} серверами`, 'success');
             }
 
+            log(`Всего найдено групп: ${groups.length}`, 'info');
+
             if (!groups.length) {
+                log('Группы не найдены!', 'error');
                 outputArea.value = '';
                 statsLabel.textContent = 'Нет групп';
                 outputSize.textContent = '0';
                 serverCount.textContent = '🌐 0 серверов';
                 convertedData = null;
+                inputStatus.innerHTML = '<span class="error">❌ Группы не найдены! Проверьте формат ввода</span>';
                 return;
             }
 
-            const result = convertGroups(groups);
-            const json = prettyJson.checked ?
-                JSON.stringify(result, null, 2) :
-                JSON.stringify(result);
+            try {
+                const result = convertGroups(groups);
+                const json = prettyJson.checked ?
+                    JSON.stringify(result, null, 2) :
+                    JSON.stringify(result);
 
-            outputArea.value = json;
-            convertedData = result;
-            outputSize.textContent = json.length;
+                outputArea.value = json;
+                convertedData = result;
+                outputSize.textContent = json.length;
 
-            const total = result.reduce((acc, g) => {
-                return acc + (g.outbounds?.filter(o => !['direct', 'block'].includes(o.tag)).length || 0);
-            }, 0);
-            statsLabel.textContent = `📊 ${result.length} групп, ${total} серверов`;
-            serverCount.textContent = `🌐 ${total} серверов`;
+                const total = result.reduce((acc, g) => {
+                    return acc + (g.outbounds?.filter(o => !['direct', 'block'].includes(o.tag)).length || 0);
+                }, 0);
+                statsLabel.textContent = `📊 ${result.length} групп, ${total} серверов`;
+                serverCount.textContent = `🌐 ${total} серверов`;
+                inputStatus.innerHTML = `<span class="success">✅ Успешно сконвертировано! ${result.length} групп, ${total} серверов</span>`;
+                log(`✅ ГОТОВО! ${result.length} групп, ${total} серверов`, 'success');
+            } catch (e) {
+                log(`❌ ОШИБКА КОНВЕРТАЦИИ: ${e.message}`, 'error');
+                log(`Stack: ${e.stack}`, 'error');
+                inputStatus.innerHTML = `<span class="error">❌ Ошибка: ${e.message}</span>`;
+                alert(`Ошибка конвертации:\n${e.message}`);
+            }
         }
 
         // ===== ПЕРВАЯ КОНВЕРТАЦИЯ ПРИ ЗАГРУЗКЕ =====
         setTimeout(() => {
+            log('Приложение загружено', 'info');
             if (inputArea.value.trim()) {
+                log('Обнаружен текст в поле ввода, запускаем конвертацию...', 'info');
                 convert();
+            } else {
+                log('Поле ввода пустое, ждем данных', 'info');
             }
-        }, 100);
+        }, 500);
     </script>
 
 </body>
